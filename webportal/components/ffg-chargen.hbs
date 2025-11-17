@@ -1,0 +1,115 @@
+<section class="sheet-section">
+  <h2>FFG Character Creation</h2>
+
+  {{!-- Debug panel so we can see what the backend is sending --}}
+  <div style="padding:10px; background:#222; color:#0f0; margin-bottom:1rem;">
+    <div><b>DEBUG:</b> char = {{this.char}}</div>
+    <div><b>DEBUG:</b> cg_info = {{this.cgInfo}}</div>
+  </div>
+
+  {{!-- High-level summary if it exists (similar to SheetTemplate#to_h) --}}
+  {{#if this.char.summary}}
+    <p><b>Summary:</b> {{this.char.summary}}</p>
+  {{/if}}
+
+  <ul class="nav nav-tabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <a href="#ffg-chars" class="nav-link active" role="tab" data-bs-toggle="tab">
+        Characteristics
+      </a>
+    </li>
+    <li class="nav-item" role="presentation">
+      <a href="#ffg-skills" class="nav-link" role="tab" data-bs-toggle="tab">
+        Skills
+      </a>
+    </li>
+    <li class="nav-item" role="presentation">
+      <a href="#ffg-talents" class="nav-link" role="tab" data-bs-toggle="tab">
+        Talents
+      </a>
+    </li>
+  </ul>
+
+  <div class="tab-content" style="margin-top:1rem;">
+
+    {{!-- Characteristics --}}
+    <div id="ffg-chars" class="tab-pane active" role="tabpanel">
+      <h3>Characteristics</h3>
+      {{#if this.char.characteristics}}
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Characteristic</th>
+              <th>Rating</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each this.char.characteristics as |c|}}
+              <tr>
+                <td>{{c.name}}</td>
+                <td>{{c.rating}}</td>
+              </tr>
+            {{/each}}
+          </tbody>
+        </table>
+      {{else}}
+        <p>No characteristics found in char.characteristics.</p>
+      {{/if}}
+    </div>
+
+    {{!-- Skills --}}
+    <div id="ffg-skills" class="tab-pane" role="tabpanel">
+      <h3>Skills</h3>
+      {{#if this.char.skills}}
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Skill</th>
+              <th>Rating</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each this.char.skills as |s|}}
+              <tr>
+                <td>{{s.name}}</td>
+                <td>{{s.rating}}</td>
+              </tr>
+            {{/each}}
+          </tbody>
+        </table>
+      {{else}}
+        <p>No skills found in char.skills.</p>
+      {{/if}}
+    </div>
+
+    {{!-- Talents --}}
+    <div id="ffg-talents" class="tab-pane" role="tabpanel">
+      <h3>Talents</h3>
+      {{#if this.char.talents}}
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Talent</th>
+              <th>Rank</th>
+              <th>Tier</th>
+              <th>Specialization</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each this.char.talents as |t|}}
+              <tr>
+                <td>{{t.name}}</td>
+                <td>{{t.rank}}</td>
+                <td>{{t.tier}}</td>
+                <td>{{t.specialization}}</td>
+              </tr>
+            {{/each}}
+          </tbody>
+        </table>
+      {{else}}
+        <p>No talents found in char.talents.</p>
+      {{/if}}
+    </div>
+
+  </div>
+</section>

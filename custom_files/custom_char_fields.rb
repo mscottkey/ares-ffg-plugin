@@ -13,7 +13,7 @@ module AresMUSH
       # @example
       #    return { goals: Website.format_markdown_for_html(char.goals) }
       def self.get_fields_for_viewing(char, viewer)
-        return { ffg: FFG.build_web_char_data(char,viewer,false) }
+        return { ffg: Ffg.build_web_char_data(char,viewer,false) }
       end
     
       # Gets custom fields for the character profile editor.
@@ -38,8 +38,8 @@ module AresMUSH
       # @example
       #    return { goals: Website.format_input_for_html(char.goals) }
       def self.get_fields_for_chargen(char)
-        return { ffg : FFG.build_web_char_data(char,char,true),
-                 cg_ffg: FFG.build_web_chargen_info() }
+        return { ffg : Ffg.build_web_char_data(char,char,true),
+                 cg_ffg: Ffg.build_web_chargen_info() }
       end
       
       # Saves fields from profile editing.
@@ -67,7 +67,7 @@ module AresMUSH
       #        char.update(goals: Website.format_input_for_mush(chargen_data[:custom][:goals]))
       #        return []
       def self.save_fields_from_chargen(char, chargen_data)
-        FFG.save_abilities(char, chargen_data)
+        Ffg.save_abilities(char, chargen_data)
         return []
       end
       
