@@ -7,7 +7,7 @@
    <hr>
    <li><a href="#" {{action (mut this.selectDamage) true}} class="dropdown-item">Set Damage</a></li>
 {{/if}}
-<FFGRoll @scene={{this.scene}} @destinationType="scene" @abilities={{this.custom.char_abilities}} @fatePoints={{this.custom.fate_points}} @charPoints={{this.custom.char_points}} @selectAddRoll={{this.selectAddRoll}} />
-<FFGOpposedRoll @scene={{this.scene}} @destinationType="scene" @selectAddOpposed={{this.selectAddOpposed}} />
-<FFGHealChar @scene={{this.scene}} @destinationType="scene" @fatePoints={{this.custom.fate_points}} @charPoints={{this.custom.char_points}} @selectHeal={{this.selectHeal}} />
-<FFGSetDamage @scene={{this.scene}} @destinationType="scene" @woundLevels={{this.custom.wound_levels}} @selectDamage={{this.selectDamage}} />
+<FfgRoll @scene={{this.scene}} @destinationType="scene" @abilities={{this.custom.char_abilities}} @fatePoints={{this.custom.fate_points}} @charPoints={{this.custom.char_points}} @selectAddRoll={{this.selectAddRoll}} />
+<FfgOpposedRoll @scene={{this.scene}} @destinationType="scene" @selectAddOpposed={{this.selectAddOpposed}} />
+<FfgHealChar @scene={{this.scene}} @destinationType="scene" @fatePoints={{this.custom.fate_points}} @charPoints={{this.custom.char_points}} @selectHeal={{this.selectHeal}} />
+<FfgSetDamage @scene={{this.scene}} @destinationType="scene" @woundLevels={{this.custom.wound_levels}} @selectDamage={{this.selectDamage}} />
