@@ -1,0 +1,27 @@
+<div id="ffg-skills" class="tab-pane" role="tabpanel">
+  <h3>Skills</h3>
+
+  {{#if this.char.skills}}
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Skill</th>
+          <th>Characteristic</th>
+          <th>Description</th>
+          <th>Rating</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each this.char.skills as |s|}}
+          <FfgSkillRow
+            @skill={{s}}
+            @maxRating={{this.cgInfo.max_cg_skill_rating}}
+            @updated={{this.args.updated}}
+          />
+        {{/each}}
+      </tbody>
+    </table>
+  {{else}}
+    <p>No skills found in char.skills.</p>
+  {{/if}}
+</div>

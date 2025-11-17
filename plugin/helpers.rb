@@ -207,5 +207,90 @@ module AresMUSH
       career = config['career']
       career.blank? || (career == char.ffg_career)
     end
+
+    # Data for web sheets/chargen.
+    # - In normal view: use SheetTemplate (live char data).
+    # - In chargen: build a full list from config so the
+    #   web UI has something to show even for new chars.
+    def self.build_web_char_data(char, viewer, chargen)
+      if !chargen
+        # Sheet view – reuse your existing sheet template.
+        sheet = SheetTemplate.new(char)
+        return sheet.to_h
+      end
+
+      # === CHARGEN VIEW ===
+
+      # Config lists (from the ffg_* config files)
+      config_chars  = Global.read_config("ffg", "characteristics") || []
+      config_skills = Global.read_config("ffg", "skills") || []
+      config_talents = Global.read_config("ffg", "talents") || []
+
+      # Build characteristics list: always one row per config entry.
+      characteristics = config_chars.map do |c|
+        # If the char already has a record, use its rating; otherwise 0.
+        rec = char.ffg_characteristics.find(name: c['name']).first rescue nil
+        {
+          name:  c['name'],
+          desc:  c['description'],
+          rating: rec ? rec.rating : 0
+        }
+      end
+
+      # Build skills list the same way.
+      skills = config_skills.map do |s|
+        rec = char.ffg_skills.find(name: s['name']).first rescue nil
+        {
+          name:           s['name'],
+          desc:           s['description'],
+          characteristic: s['characteristic'],
+          rating:         rec ? rec.rating : 0
+        }
+      end
+
+      # For chargen we normally only care about already-picked talents.
+      talents = char.ffg_talents.map do |t|
+        {
+          name:           t.name,
+          rank:           t.ranked ? t.rating : nil,
+          tier:           t.tier,
+          specialization: t.specialization
+        }
+      end
+
+      wounds = {
+        current: char.ffg_wounds || 0,
+        max:     char.ffg_wound_threshold || 0
+      }
+
+      strain = {
+        current: char.ffg_strain || 0,
+        max:     char.ffg_strain_threshold || 0
+      }
+
+      {
+        summary:         nil, # you can wire this later if you want
+        characteristics: characteristics,
+        skills:          skills,
+        talents:         talents,
+        wounds:          wounds,
+        strain:          strain
+      }
+    end
+
+    # Build web chargen config info (limits, XP rules, etc.)
+    # Values come from game/config/ffg_general.yml (ffg: ...).
+    def self.build_web_chargen_info
+      {
+        max_cg_characteristic_rating: Global.read_config("ffg", "max_cg_characteristic_rating"),
+        max_cg_skill_rating:         Global.read_config("ffg", "max_cg_skill_rating"),
+        bonus_xp:                    Global.read_config("ffg", "bonus_xp"),
+        career_skill_xp:             Global.read_config("ffg", "career_skill_xp"),
+        use_force:                   Global.read_config("ffg", "use_force"),
+        min_career_skills:           Global.read_config("ffg", "min_career_skills"),
+        wound_characteristic:        Global.read_config("ffg", "wound_characteristic"),
+        strain_characteristic:       Global.read_config("ffg", "strain_characteristic")
+      }
+    end
   end
 end
