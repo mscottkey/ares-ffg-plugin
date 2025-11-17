@@ -65,6 +65,28 @@ module AresMUSH
               "#{linebreak}%xh#{title}%xn #{rating}"
         end
       end
+
+      def to_h
+        {
+          summary: summary,
+          characteristics: char.ffg_characteristics.map { |c| { name: c.name, rating: c.rating }},
+          skills: char.ffg_skills.map { |s| { name: s.name, rating: s.rating }},
+          talents: char.ffg_talents.map { |t| {
+            name: t.name,
+            rank: t.ranked ? t.rating : nil,
+            tier: t.tier,
+            specialization: t.specialization
+          }},
+          wounds: {
+            current: char.ffg_wounds || 0,
+            max: char.ffg_wound_threshold || 0
+          },
+          strain: {
+            current: char.ffg_strain || 0,
+            max: char.ffg_strain_threshold || 0
+          }
+        }
+      end
     end
   end
 end
