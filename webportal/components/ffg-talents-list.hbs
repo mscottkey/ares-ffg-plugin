@@ -1,69 +1,103 @@
 <div id="ffg-talents" class="tab-pane" role="tabpanel">
-  {{! Header is rendered by parent to prevent duplication }}
+  {{!-- DEBUG --}}
+  <div style="padding:6px; background:#222; color:#0f0; margin-bottom:0.5rem; font-size:0.85em;">
+    <div><b>DEBUG (ffg-talents-list):</b></div>
+    <div>Has @char? {{if @char "yes" "no"}}</div>
+    <div>Purchased talents: {{this.purchasedTalents.length}}</div>
+    <div>Configured talents (cgInfo.talents): {{this.availableTalents.length}}</div>
+  </div>
 
-  {{!-- Pyramid counts: show counts per tier 5 -> 1 --}}
-  <div class="ffg-talent-pyramid" style="margin-bottom:1rem;">
-    {{#each this.pyramidTiers as |tier|}}
-      <div style="display:inline-block; margin-right:0.5rem; text-align:center;">
-        <div><b>Tier {{tier}}</b></div>
-        <div>{{this.talentsForTier tier}}</div>
-      </div>
+  {{!-- Pyramid summary --}}
+  <div class="mb-2">
+    {{#each this.tierSummary as |row|}}
+      <span style="display:inline-block; margin-right:0.75rem; text-align:center;">
+        <div><b>Tier {{row.tier}}</b></div>
+        <div>{{row.count}}</div>
+      </span>
     {{/each}}
   </div>
 
-  {{!-- DEBUG: show what cgInfo/talents the frontend sees --}}
-  <div class="ffg-debug" style="padding:0.5rem; background:#222; color:#0f0; margin-bottom:1rem;">
-    <div><b>DEBUG:</b> availableTalents length = {{this.availableTalents.length}}</div>
-    <div><b>DEBUG:</b> cgInfo = {{this.args.cgInfo}}</div>
-    <div><b>DEBUG:</b> char talents = {{this.args.char.talents}}</div>
-  </div>
+  <p style="margin:0 0 0.5rem 0; font-size:0.85em;">
+    A valid talent pyramid has at least as many talents in lower tiers as in higher tiers.
+    Current pyramid balanced? <b>{{if this.isBalanced "Yes" "No"}}</b>
+  </p>
 
-  <table class="table table-striped">
-      <thead>
-        <tr>
-          <th>Talent</th>
-          <th class="text-center">Rank</th>
-          <th class="text-center">Tier</th>
-          <th>Specialization</th>
-          <th class="text-center">Adjust</th>
-        </tr>
-      </thead>
-      <tbody>
-        {{#each @char.talents as |t|}}
-          <FfgTalentRow
-            @talent={{t}}
-            @cgInfo={{@cgInfo}}
-            @addTalent={{this.addTalent}}
-            @removeTalent={{this.removeTalent}}
-            @updated={{@updated}}
-          />
-        {{else}}
-          <tr>
-            <td colspan="5"><em>No talents selected.</em></td>
-          </tr>
-        {{/each}}
-      </tbody>
-    </table>
+  {{!-- Tier tabs --}}
+  <ul class="nav nav-tabs mb-2" role="tablist">
+    {{#each this.tierTabs as |tier|}}
+      <li class="nav-item" role="presentation">
+        <button
+          type="button"
+          class="nav-link {{if (eq this.activeTier tier) "active"}}"
+          role="tab"
+          {{on "click" (fn this.selectTier tier)}}
+        >
+          Tier {{tier}}
+        </button>
+      </li>
+    {{/each}}
+  </ul>
 
-  {{!-- Small UI to add a new talent by name or select from configured list --}}
-  <div class="mb-2">
-    <label for="ffg-add-talent">Add Talent</label>
-    <div class="input-group">
-      {{#if this.availableTalents.length}}
-        <select class="form-select" id="ffg-add-talent" {{on "change" this.onSelect}}>
-          <option value="">(select a talent)</option>
-          {{#each this.availableTalents as |t|}}
-            <option value={{t.name}}>{{t.name}} (Tier {{t.tier}}){{#if t.specializations}} • {{this.specList t}}{{/if}}</option>
-          {{/each}}
-        </select>
+  {{!-- Active tier table --}}
+  <div class="tab-content">
+    <div class="tab-pane active" role="tabpanel">
+      {{#if this.activeTierTalents.length}}
+        <table class="table table-sm table-striped">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th class="text-center">Tier</th>
+              <th class="text-center">Ranked?</th>
+              <th>Prerequisite</th>
+              <th class="text-center">Current Rank</th>
+              <th class="text-center">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each this.activeTierTalents as |t|}}
+              <tr>
+                <td>{{t.name}}</td>
+                <td class="text-center">{{t.tier}}</td>
+                <td class="text-center">
+                  {{if t.ranked "Yes" "No"}}
+                </td>
+                <td>
+                  {{#if t.prereq}}
+                    {{t.prereq}}
+                  {{else}}
+                    &mdash;
+                  {{/if}}
+                </td>
+                <td class="text-center">
+                  {{t.currentRank}}
+                </td>
+                <td class="text-center">
+                  {{#if t.hasTalent}}
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-danger"
+                      {{on "click" (fn this.removeTalentFromRow t)}}
+                    >
+                      Remove
+                    </button>
+                  {{else}}
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-primary"
+                      {{on "click" (fn this.addTalentFromRow t)}}
+                      disabled={{not t.canAdd}}
+                    >
+                      Add
+                    </button>
+                  {{/if}}
+                </td>
+              </tr>
+            {{/each}}
+          </tbody>
+        </table>
       {{else}}
-        <div class="form-control">No talents configured — you can type a talent name below to try adding by name.</div>
+        <p>No talents defined for this tier.</p>
       {{/if}}
-      {{!-- Fallback text input for manual adding if the config list is not available --}}
-      {{#if (not this.availableTalents.length)}}
-        <input class="form-control" placeholder="Enter talent name" value={{this.selectedTalent}} {{on "input" this.onTextInput}} />
-      {{/if}}
-      <button class="btn btn-primary" {{on "click" this.addSelected}} disabled={{not this.selectedTalent}}>Add</button>
     </div>
   </div>
 </div>

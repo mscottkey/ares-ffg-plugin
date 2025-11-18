@@ -317,7 +317,7 @@ module AresMUSH
     # Web chargen save hook – server-side validation
     # ------------------------------------------------------------
 
-    # Save web chargen abilities (characteristics + skills).
+    # Save web chargen abilities (characteristics + skills + talents).
     # Returns an array of error strings; empty if everything is OK.
     def self.save_abilities(char, chargen_data)
       errors = []
@@ -337,7 +337,12 @@ module AresMUSH
                ffg["skills"] ||
                []
 
-      max_char = Global.read_config("ffg", "max_cg_characteristic_rating") || 5
+      # NEW: talents array coming back from the web UI.
+      talents = ffg[:talents] ||
+                ffg["talents"] ||
+                []
+
+      max_char  = Global.read_config("ffg", "max_cg_characteristic_rating") || 5
       max_skill = Global.read_config("ffg", "max_cg_skill_rating") || 2
 
       # --- Characteristics ---
@@ -373,8 +378,44 @@ module AresMUSH
         Ffg.set_skill(char, name, rating)
       end
 
-      # For now we’re *not* doing full XP math here – just hard caps.
-      # XP accounting can be layered on later once the basics feel solid.
+      # --- TALENTS (NEW) ---
+      # For chargen we simply replace the character's talent list with
+      # whatever the web UI sends back.
+      begin
+        # Wipe existing talents.
+        char.ffg_talents.to_a.each { |t| t.delete }
+
+        talents.each do |row|
+          name = row[:name] || row["name"]
+          next if name.blank?
+
+          config = Ffg.find_talent_config(name)
+          if !config
+            errors << "Unknown talent: #{name}"
+            next
+          end
+
+          tier  = (row[:tier]  || row["tier"]  || config['tier']  || 1).to_i
+          rank  = (row[:rank]  || row["rank"]  || 1).to_i
+          spec  =  row[:specialization] || row["specialization"]
+          ranked = !!config['ranked']
+
+          FfgTalent.create(
+            character:      char,
+            name:           name,
+            tier:           tier,
+            ranked:         ranked,
+            rating:         ranked ? rank : 1,
+            specialization: spec
+          )
+        end
+      rescue => e
+        Global.logger.warn "Error saving FFG talents for #{char.name}: #{e}"
+        errors << "There was a problem saving your talents.  Please try again or contact staff."
+      end
+
+      # For now we’re *not* doing full XP math here – just hard caps
+      # on characteristics/skills. XP accounting can be layered on later.
       errors
     end
   end
