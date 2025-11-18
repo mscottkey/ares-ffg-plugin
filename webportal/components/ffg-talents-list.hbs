@@ -1,0 +1,69 @@
+<div id="ffg-talents" class="tab-pane" role="tabpanel">
+  {{! Header is rendered by parent to prevent duplication }}
+
+  {{!-- Pyramid counts: show counts per tier 5 -> 1 --}}
+  <div class="ffg-talent-pyramid" style="margin-bottom:1rem;">
+    {{#each this.pyramidTiers as |tier|}}
+      <div style="display:inline-block; margin-right:0.5rem; text-align:center;">
+        <div><b>Tier {{tier}}</b></div>
+        <div>{{this.talentsForTier tier}}</div>
+      </div>
+    {{/each}}
+  </div>
+
+  {{!-- DEBUG: show what cgInfo/talents the frontend sees --}}
+  <div class="ffg-debug" style="padding:0.5rem; background:#222; color:#0f0; margin-bottom:1rem;">
+    <div><b>DEBUG:</b> availableTalents length = {{this.availableTalents.length}}</div>
+    <div><b>DEBUG:</b> cgInfo = {{this.args.cgInfo}}</div>
+    <div><b>DEBUG:</b> char talents = {{this.args.char.talents}}</div>
+  </div>
+
+  <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Talent</th>
+          <th class="text-center">Rank</th>
+          <th class="text-center">Tier</th>
+          <th>Specialization</th>
+          <th class="text-center">Adjust</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each @char.talents as |t|}}
+          <FfgTalentRow
+            @talent={{t}}
+            @cgInfo={{@cgInfo}}
+            @addTalent={{this.addTalent}}
+            @removeTalent={{this.removeTalent}}
+            @updated={{@updated}}
+          />
+        {{else}}
+          <tr>
+            <td colspan="5"><em>No talents selected.</em></td>
+          </tr>
+        {{/each}}
+      </tbody>
+    </table>
+
+  {{!-- Small UI to add a new talent by name or select from configured list --}}
+  <div class="mb-2">
+    <label for="ffg-add-talent">Add Talent</label>
+    <div class="input-group">
+      {{#if this.availableTalents.length}}
+        <select class="form-select" id="ffg-add-talent" {{on "change" this.onSelect}}>
+          <option value="">(select a talent)</option>
+          {{#each this.availableTalents as |t|}}
+            <option value={{t.name}}>{{t.name}} (Tier {{t.tier}}){{#if t.specializations}} • {{this.specList t}}{{/if}}</option>
+          {{/each}}
+        </select>
+      {{else}}
+        <div class="form-control">No talents configured — you can type a talent name below to try adding by name.</div>
+      {{/if}}
+      {{!-- Fallback text input for manual adding if the config list is not available --}}
+      {{#if (not this.availableTalents.length)}}
+        <input class="form-control" placeholder="Enter talent name" value={{this.selectedTalent}} {{on "input" this.onTextInput}} />
+      {{/if}}
+      <button class="btn btn-primary" {{on "click" this.addSelected}} disabled={{not this.selectedTalent}}>Add</button>
+    </div>
+  </div>
+</div>

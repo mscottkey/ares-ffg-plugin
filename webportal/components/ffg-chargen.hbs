@@ -45,10 +45,11 @@
           </thead>
           <tbody>
             {{#each this.char.characteristics as |c|}}
-              <tr>
-                <td>{{c.name}}</td>
-                <td>{{c.rating}}</td>
-              </tr>
+              <FfgCharacteristicRow
+                @charac={{c}}
+                @maxRating={{this.cgInfo.max_cg_characteristic_rating}}
+                @updated={{this.updated}}
+              />
             {{/each}}
           </tbody>
         </table>
@@ -60,55 +61,24 @@
     {{!-- Skills --}}
     <div id="ffg-skills" class="tab-pane" role="tabpanel">
       <h3>Skills</h3>
-      {{#if this.char.skills}}
-        <table class="table table-striped">
-          <thead>
-            <tr>
-              <th>Skill</th>
-              <th>Rating</th>
-            </tr>
-          </thead>
-          <tbody>
-            {{#each this.char.skills as |s|}}
-              <tr>
-                <td>{{s.name}}</td>
-                <td>{{s.rating}}</td>
-              </tr>
-            {{/each}}
-          </tbody>
-        </table>
-      {{else}}
-        <p>No skills found in char.skills.</p>
-      {{/if}}
+      {{!-- Use our reusable skills table component which renders rows via <FfgSkillRow /> --}}
+      <FfgSkillsRow
+        @char={{this.char}}
+        @maxRating={{this.cgInfo.max_cg_skill_rating}}
+        @updated={{this.updated}}
+      />
     </div>
 
     {{!-- Talents --}}
     <div id="ffg-talents" class="tab-pane" role="tabpanel">
       <h3>Talents</h3>
-      {{#if this.char.talents}}
-        <table class="table table-striped">
-          <thead>
-            <tr>
-              <th>Talent</th>
-              <th>Rank</th>
-              <th>Tier</th>
-              <th>Specialization</th>
-            </tr>
-          </thead>
-          <tbody>
-            {{#each this.char.talents as |t|}}
-              <tr>
-                <td>{{t.name}}</td>
-                <td>{{t.rank}}</td>
-                <td>{{t.tier}}</td>
-                <td>{{t.specialization}}</td>
-              </tr>
-            {{/each}}
-          </tbody>
-        </table>
-      {{else}}
-        <p>No talents found in char.talents.</p>
-      {{/if}}
+      <FfgTalentsList
+        @char={{this.char}}
+        @cgInfo={{this.cgInfo}}
+        @addTalent={{action "addTalent"}}
+        @removeTalent={{action "removeTalent"}}
+        @updated={{this.updated}}
+      />
     </div>
 
   </div>

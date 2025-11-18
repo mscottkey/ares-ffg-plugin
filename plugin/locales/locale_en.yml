@@ -74,3 +74,6 @@ en:
       roll_despair: "%xRDespair!%xn"
       roll_successful: "%{char} rolls %{roll} and is successful. (%{dice}) %{special}"
       roll_failed: "%{char} rolls %{roll} and fails. (%{dice}) %{special}"
+
+      char_rating_too_high: "%{name} is above the maximum chargen rating (%{max})."
+      skill_rating_too_high: "%{name} is above the maximum chargen rating (%{max})."

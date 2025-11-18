@@ -1,0 +1,13 @@
+<tr>
+  <td>{{@skill.name}}</td>
+
+  <td class="text-center">
+    <div class="fs3-rating-control">
+      <button class="fs3-skillbutton" {{on "click" this.decrease}}>−</button>
+      <span style="display:inline-block; width:2rem; text-align:center;">
+        {{@skill.rating}}
+      </span>
+      <button class="fs3-skillbutton" {{on "click" this.increase}}>+</button>
+    </div>
+  </td>
+</tr>

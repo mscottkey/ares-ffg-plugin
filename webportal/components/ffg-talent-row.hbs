@@ -1,0 +1,12 @@
+<tr>
+  <td>{{@talent.name}}</td>
+  <td class="text-center">{{@talent.rank}}</td>
+  <td class="text-center">{{@talent.tier}}</td>
+  <td>{{@talent.specialization}}</td>
+  <td class="text-center">
+    <div class="fs3-rating-control">
+      <button class="btn btn-sm btn-outline-secondary" {{on "click" this.decrease}}>-</button>
+      <button class="btn btn-sm btn-outline-secondary" {{on "click" this.increase}}>+</button>
+    </div>
+  </td>
+</tr>

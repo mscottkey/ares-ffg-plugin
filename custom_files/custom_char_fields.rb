@@ -38,7 +38,7 @@ module AresMUSH
       # @example
       #    return { goals: Website.format_input_for_html(char.goals) }
       def self.get_fields_for_chargen(char)
-        return { ffg : Ffg.build_web_char_data(char,char,true),
+        return { ffg: Ffg.build_web_char_data(char,char,true),
                  cg_ffg: Ffg.build_web_chargen_info() }
       end
       
@@ -67,9 +67,10 @@ module AresMUSH
       #        char.update(goals: Website.format_input_for_mush(chargen_data[:custom][:goals]))
       #        return []
       def self.save_fields_from_chargen(char, chargen_data)
-        Ffg.save_abilities(char, chargen_data)
-        return []
+        errors = Ffg.save_abilities(char, chargen_data)
+        errors || []
       end
+
       
     end
   end
