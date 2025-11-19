@@ -1,12 +1,4 @@
 <div id="ffg-talents" class="tab-pane" role="tabpanel">
-  {{!-- DEBUG --}}
-  <div style="padding:6px; background:#222; color:#0f0; margin-bottom:0.5rem; font-size:0.85em;">
-    <div><b>DEBUG (ffg-talents-list):</b></div>
-    <div>Has @char? {{if @char "yes" "no"}}</div>
-    <div>Purchased talents: {{this.purchasedTalents.length}}</div>
-    <div>Configured talents (cgInfo.talents): {{this.availableTalents.length}}</div>
-  </div>
-
   {{!-- Pyramid summary --}}
   <div class="mb-2">
     {{#each this.tierSummary as |row|}}
@@ -48,7 +40,9 @@
               <th>Name</th>
               <th class="text-center">Tier</th>
               <th class="text-center">Ranked?</th>
+              <th class="text-center">Force?</th>
               <th>Prerequisite</th>
+              <th>Specializations</th>
               <th class="text-center">Current Rank</th>
               <th class="text-center">Action</th>
             </tr>
@@ -59,13 +53,31 @@
                 <td>{{t.name}}</td>
                 <td class="text-center">{{t.tier}}</td>
                 <td class="text-center">
-                  {{if t.ranked "Yes" "No"}}
+                  {{#if t.ranked}}
+                    <span class="badge bg-success">Yes</span>
+                  {{else}}
+                    <span class="badge bg-secondary">No</span>
+                  {{/if}}
+                </td>
+                <td class="text-center">
+                  {{#if t.force_power}}
+                    <span class="badge bg-warning">Yes</span>
+                  {{else}}
+                    <span class="badge bg-secondary">No</span>
+                  {{/if}}
                 </td>
                 <td>
                   {{#if t.prereq}}
                     {{t.prereq}}
                   {{else}}
                     &mdash;
+                  {{/if}}
+                </td>
+                <td>
+                  {{#if t.specializations}}
+                    <small>{{t.specializationsText}}</small>
+                  {{else}}
+                    <small class="text-muted">Any</small>
                   {{/if}}
                 </td>
                 <td class="text-center">

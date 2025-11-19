@@ -122,11 +122,20 @@ export default class FfgTalentsListComponent extends Component {
       const currentRank = cur ? cur.rank : 0;
       const canAdd      = !hasTalent && this._pyramidOkIfAddTier(tier);
 
+      // Format specializations as a comma-separated string
+      let specializationsText = '';
+      if (t.specializations && Array.isArray(t.specializations) && t.specializations.length > 0) {
+        specializationsText = t.specializations.join(', ');
+      }
+
       grouped[tier].push({
         name,
         tier,
         ranked: t.ranked,
+        force_power: t.force_power,
         prereq: t.prereq,
+        specializations: t.specializations,
+        specializationsText: specializationsText,
         hasTalent,
         currentRank,
         canAdd

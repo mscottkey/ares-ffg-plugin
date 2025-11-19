@@ -79,14 +79,6 @@ module AresMUSH
       case request.cmd
       when "getChargenInfo"
         return GetChargenInfoRequestHandler
-      when "setFFGArchetype"
-        return SetArchetypeRequestHandler
-      when "setFFGCareer"
-        return SetCareerRequestHandler
-      when "addFFGSpecialization"
-        return AddSpecializationRequestHandler
-      when "removeFFGSpecialization"
-        return RemoveSpecializationRequestHandler
       end
       nil
     end

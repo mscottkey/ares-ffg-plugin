@@ -1,11 +1,11 @@
 import Component from '@ember/component';
 import { inject as service } from '@ember/service';
 import { computed } from '@ember/object';
+import { set } from '@ember/object';
 
 export default Component.extend({
   tagName: '',
   flashMessages: service(),
-  gameApi: service(),
   selectedSpecName: null,
 
   didInsertElement() {
@@ -47,49 +47,60 @@ export default Component.extend({
     },
 
     selectArchetype(event) {
-      let archetype = event.target.value;
+      let archetypeName = event.target.value;
+      if (!archetypeName) { return; }
+
+      let cgInfo = this.get('cgInfo');
+      let archetypes = cgInfo.archetypes || [];
+      let archetype = archetypes.find(a => a.name === archetypeName);
+      
       if (!archetype) { return; }
 
-      let name = this.get('name');
-      if (!name) { return; }
-
-      this.get('gameApi').requestOne('setFFGArchetype', {
-        id: name,
-        archetype: archetype
-      }).then((response) => {
-        if (response.error) {
-          this.get('flashMessages').danger(response.error);
-          return;
-        }
-
-        if (response.char) {
-          this.set('char', response.char);
-          this.onUpdate();
-        }
+      // Update the char object directly
+      set(this.char, 'archetype', {
+        name: archetype.name,
+        characteristics: archetype.characteristics,
+        wound: archetype.wound,
+        strain: archetype.strain,
+        xp: archetype.xp
       });
+
+      // Reset characteristics to archetype defaults
+      let characteristics = this.get('char.characteristics') || [];
+      characteristics.forEach(c => {
+        let archetypeValue = archetype.characteristics[c.name] || 0;
+        set(c, 'rating', archetypeValue);
+      });
+
+      // Update XP
+      let bonus_xp = cgInfo.bonus_xp || 0;
+      let career_xp = cgInfo.career_skill_xp || 0;
+      set(this.char, 'starting_xp', archetype.xp + bonus_xp + career_xp);
+      set(this.char, 'current_xp', archetype.xp + bonus_xp + career_xp);
+
+      this.onUpdate();
     },
 
     selectCareer(event) {
-      let career = event.target.value;
+      let careerName = event.target.value;
+      if (!careerName) { return; }
+
+      let cgInfo = this.get('cgInfo');
+      let careers = cgInfo.careers || [];
+      let career = careers.find(c => c.name === careerName);
+      
       if (!career) { return; }
 
-      let name = this.get('name');
-      if (!name) { return; }
-
-      this.get('gameApi').requestOne('setFFGCareer', {
-        id: name,
-        career: career
-      }).then((response) => {
-        if (response.error) {
-          this.get('flashMessages').danger(response.error);
-          return;
-        }
-
-        if (response.char) {
-          this.set('char', response.char);
-          this.onUpdate();
-        }
+      // Update the char object directly
+      set(this.char, 'career', {
+        name: career.name,
+        career_skills: career.career_skills || []
       });
+
+      // Update career_skills list for validation
+      set(this.char, 'career_skills', career.career_skills || []);
+
+      this.onUpdate();
     },
 
     updateSpecSelection(event) {
@@ -97,27 +108,48 @@ export default Component.extend({
     },
 
     addSpecialization() {
-      let specialization = this.get('selectedSpecName');
-      if (!specialization) { return; }
+      let specName = this.get('selectedSpecName');
+      if (!specName) { return; }
 
-      let name = this.get('name');
-      if (!name) { return; }
+      let cgInfo = this.get('cgInfo');
+      let allSpecs = cgInfo.specializations || [];
+      let specConfig = allSpecs.find(s => s.name === specName);
+      
+      if (!specConfig) { return; }
 
-      this.get('gameApi').requestOne('addFFGSpecialization', {
-        id: name,
-        specialization: specialization
-      }).then((response) => {
-        if (response.error) {
-          this.get('flashMessages').danger(response.error);
-          return;
-        }
+      let specializations = this.get('char.specializations') || [];
+      
+      // Check if already have it
+      if (specializations.find(s => s.name === specName)) {
+        return;
+      }
 
-        if (response.char) {
-          this.set('char', response.char);
-          this.set('selectedSpecName', null);
-          this.onUpdate();
+      // Add the specialization
+      specializations.pushObject({
+        name: specConfig.name,
+        career: specConfig.career,
+        career_skills: specConfig.career_skills || [],
+        force_user: specConfig.force_user
+      });
+
+      // Update career_skills to include spec skills
+      let careerSkills = this.get('char.career_skills') || [];
+      let allCareerSkills = [...careerSkills];
+      (specConfig.career_skills || []).forEach(skill => {
+        if (!allCareerSkills.includes(skill)) {
+          allCareerSkills.push(skill);
         }
       });
+      set(this.char, 'career_skills', allCareerSkills);
+
+      // Update is_career flag on skills
+      let skills = this.get('char.skills') || [];
+      skills.forEach(skill => {
+        set(skill, 'is_career', allCareerSkills.includes(skill.name));
+      });
+
+      this.set('selectedSpecName', null);
+      this.onUpdate();
     },
 
     removeSpecialization(specName) {
@@ -125,23 +157,29 @@ export default Component.extend({
         return;
       }
 
-      let name = this.get('name');
-      if (!name) { return; }
+      let specializations = this.get('char.specializations') || [];
+      let filtered = specializations.filter(s => s.name !== specName);
+      set(this.char, 'specializations', filtered);
 
-      this.get('gameApi').requestOne('removeFFGSpecialization', {
-        id: name,
-        specialization: specName
-      }).then((response) => {
-        if (response.error) {
-          this.get('flashMessages').danger(response.error);
-          return;
-        }
-
-        if (response.char) {
-          this.set('char', response.char);
-          this.onUpdate();
-        }
+      // Rebuild career_skills
+      let careerSkills = this.get('char.career.career_skills') || [];
+      let allCareerSkills = [...careerSkills];
+      filtered.forEach(spec => {
+        (spec.career_skills || []).forEach(skill => {
+          if (!allCareerSkills.includes(skill)) {
+            allCareerSkills.push(skill);
+          }
+        });
       });
+      set(this.char, 'career_skills', allCareerSkills);
+
+      // Update is_career flag on skills
+      let skills = this.get('char.skills') || [];
+      skills.forEach(skill => {
+        set(skill, 'is_career', allCareerSkills.includes(skill.name));
+      });
+
+      this.onUpdate();
     }
   }
 });
