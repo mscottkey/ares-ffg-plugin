@@ -40,26 +40,26 @@
             {{#each this.cgInfo.archetypes as |arch|}}
               <option
                 value={{arch.name}}
-                selected={{eq arch.name this.char.archetype.name}}
+                selected={{eq arch.name this.ffgData.archetype.name}}
               >
                 {{arch.name}}
               </option>
             {{/each}}
           </select>
           
-          {{#if this.char.archetype}}
-            <div class="mt-2 p-2 bg-light border rounded">
-              <strong>{{this.char.archetype.name}}</strong><br>
+          {{#if this.ffgData.archetype}}
+            <div class="alert alert-info mt-2">
+              <strong>{{this.ffgData.archetype.name}}</strong><br>
               <small>
-                Wound Threshold: {{this.char.archetype.wound}} • 
-                Strain Threshold: {{this.char.archetype.strain}} • 
-                Starting XP: {{this.char.archetype.xp}}
+                Wound Threshold: {{this.ffgData.archetype.wound}} • 
+                Strain Threshold: {{this.ffgData.archetype.strain}} • 
+                Starting XP: {{this.ffgData.archetype.xp}}
               </small>
-              {{#if this.char.archetype.characteristics}}
+              {{#if this.ffgData.archetype.characteristics}}
                 <div class="mt-1">
                   <small><strong>Starting Characteristics:</strong></small><br>
                   <small>
-                    {{#each-in this.char.archetype.characteristics as |name value|}}
+                    {{#each-in this.ffgData.archetype.characteristics as |name value|}}
                       {{name}}: {{value}}&nbsp;&nbsp;
                     {{/each-in}}
                   </small>
@@ -76,22 +76,24 @@
             {{#each this.cgInfo.careers as |car|}}
               <option
                 value={{car.name}}
-                selected={{eq car.name this.char.career.name}}
+                selected={{eq car.name this.ffgData.career.name}}
               >
                 {{car.name}}
               </option>
             {{/each}}
           </select>
 
-          {{#if this.char.career}}
-            <div class="mt-2 p-2 bg-light border rounded">
-              <strong>{{this.char.career.name}}</strong><br>
-              <small><strong>Career Skills:</strong></small><br>
-              <small>
-                {{#each this.char.career.career_skills as |skill index|}}
-                  {{skill}}{{#unless (eq index (sub this.char.career.career_skills.length 1))}}, {{/unless}}
-                {{/each}}
-              </small>
+          {{#if this.ffgData.career}}
+            <div class="alert alert-info mt-2">
+              <strong>{{this.ffgData.career.name}}</strong><br>
+              {{#if this.ffgData.career.career_skills}}
+                <small><strong>Career Skills:</strong></small><br>
+                <small>
+                  {{#each this.ffgData.career.career_skills as |skill|}}
+                    {{skill}}{{#if @last}}{{else}}, {{/if}}
+                  {{/each}}
+                </small>
+              {{/if}}
             </div>
           {{/if}}
         </div>
@@ -133,11 +135,11 @@
             </div>
           </div>
 
-          {{#if this.char.specializations}}
+          {{#if this.ffgData.specializations}}
             <div class="mt-3">
               <strong>Your Specializations:</strong>
               <ul class="list-group mt-2">
-                {{#each this.char.specializations as |spec index|}}
+                {{#each this.ffgData.specializations as |spec index|}}
                   <li class="list-group-item d-flex justify-content-between align-items-center">
                     <div>
                       <strong>{{spec.name}}</strong>
@@ -156,8 +158,8 @@
                         <br>
                         <small class="text-muted">
                           Skills: 
-                          {{#each spec.career_skills as |skill skillIndex|}}
-                            {{skill}}{{#unless (eq skillIndex (sub spec.career_skills.length 1))}}, {{/unless}}
+                          {{#each spec.career_skills as |skill|}}
+                            {{skill}}{{#if @last}}{{else}}, {{/if}}
                           {{/each}}
                         </small>
                       {{/if}}
@@ -177,15 +179,15 @@
       {{/if}}
 
       {{! XP Summary }}
-      {{#if this.char.archetype}}
-        <div class="mt-4 p-3 bg-info bg-opacity-10 border border-info rounded">
+      {{#if this.ffgData.archetype}}
+        <div class="alert alert-primary mt-4">
           <h5>Experience Points (XP)</h5>
           <div class="row">
             <div class="col-md-4">
-              <strong>Starting XP:</strong> {{this.char.starting_xp}}
+              <strong>Starting XP:</strong> {{this.ffgData.starting_xp}}
             </div>
             <div class="col-md-4">
-              <strong>Current XP:</strong> {{this.char.current_xp}}
+              <strong>Current XP:</strong> {{this.ffgData.current_xp}}
             </div>
             <div class="col-md-4">
               <strong>Spent XP:</strong> {{this.spentXP}}
@@ -211,7 +213,7 @@
           </tr>
         </thead>
         <tbody>
-          {{#each this.char.characteristics as |c|}}
+          {{#each this.ffgData.characteristics as |c|}}
             <FfgCharacteristicRow
               @charac={{c}}
               @maxRating={{this.cgInfo.max_cg_characteristic_rating}}
@@ -242,7 +244,7 @@
           </tr>
         </thead>
         <tbody>
-          {{#each this.char.skills as |s|}}
+          {{#each this.ffgData.skills as |s|}}
             <tr class="{{if s.is_career 'table-success'}}">
               <td>
                 <strong>{{s.name}}</strong>
@@ -280,7 +282,7 @@
         to support higher tier talents.
       </p>
       <FfgTalentsList
-        @char={{this.char}}
+        @char={{this.ffgData}}
         @cgInfo={{this.cgInfo}}
         @updated={{action "abilityChanged"}}
       />

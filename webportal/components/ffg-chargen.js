@@ -14,6 +14,16 @@ export default Component.extend({
     this.set('updateCallback', function() { return self.onUpdate(); });
   },
 
+  // Get FFG data from char.custom.ffg
+  ffgData: computed('char.custom.ffg', function() {
+    return this.get('char.custom.ffg') || {};
+  }),
+
+  // Get chargen info from char.custom.cg_ffg
+  cgInfo: computed('char.custom.cg_ffg', function() {
+    return this.get('char.custom.cg_ffg') || {};
+  }),
+
   onUpdate() {
     if (this.updated) {
       this.updated();
@@ -21,10 +31,10 @@ export default Component.extend({
   },
 
   // Filter available specializations
-  availableSpecs: computed('cgInfo.specializations', 'char.career.name', 'char.specializations.@each.name', function() {
+  availableSpecs: computed('cgInfo.specializations', 'ffgData.career.name', 'ffgData.specializations.@each.name', function() {
     let allSpecs = this.get('cgInfo.specializations') || [];
-    let careerName = this.get('char.career.name');
-    let currentSpecs = (this.get('char.specializations') || []).map(s => s.name);
+    let careerName = this.get('ffgData.career.name');
+    let currentSpecs = (this.get('ffgData.specializations') || []).map(s => s.name);
     
     return allSpecs.filter(spec => {
       if (currentSpecs.includes(spec.name)) {
@@ -35,9 +45,9 @@ export default Component.extend({
   }),
 
   // Calculate spent XP
-  spentXP: computed('char.starting_xp', 'char.current_xp', function() {
-    let starting = this.get('char.starting_xp') || 0;
-    let current = this.get('char.current_xp') || 0;
+  spentXP: computed('ffgData.starting_xp', 'ffgData.current_xp', function() {
+    let starting = this.get('ffgData.starting_xp') || 0;
+    let current = this.get('ffgData.current_xp') || 0;
     return starting - current;
   }),
 
@@ -56,8 +66,10 @@ export default Component.extend({
       
       if (!archetype) { return; }
 
-      // Update the char object directly
-      set(this.char, 'archetype', {
+      let ffgData = this.get('ffgData');
+
+      // Update the archetype
+      set(ffgData, 'archetype', {
         name: archetype.name,
         characteristics: archetype.characteristics,
         wound: archetype.wound,
@@ -66,7 +78,7 @@ export default Component.extend({
       });
 
       // Reset characteristics to archetype defaults
-      let characteristics = this.get('char.characteristics') || [];
+      let characteristics = ffgData.characteristics || [];
       characteristics.forEach(c => {
         let archetypeValue = archetype.characteristics[c.name] || 0;
         set(c, 'rating', archetypeValue);
@@ -75,8 +87,8 @@ export default Component.extend({
       // Update XP
       let bonus_xp = cgInfo.bonus_xp || 0;
       let career_xp = cgInfo.career_skill_xp || 0;
-      set(this.char, 'starting_xp', archetype.xp + bonus_xp + career_xp);
-      set(this.char, 'current_xp', archetype.xp + bonus_xp + career_xp);
+      set(ffgData, 'starting_xp', archetype.xp + bonus_xp + career_xp);
+      set(ffgData, 'current_xp', archetype.xp + bonus_xp + career_xp);
 
       this.onUpdate();
     },
@@ -91,14 +103,16 @@ export default Component.extend({
       
       if (!career) { return; }
 
-      // Update the char object directly
-      set(this.char, 'career', {
+      let ffgData = this.get('ffgData');
+
+      // Update the career
+      set(ffgData, 'career', {
         name: career.name,
         career_skills: career.career_skills || []
       });
 
       // Update career_skills list for validation
-      set(this.char, 'career_skills', career.career_skills || []);
+      set(ffgData, 'career_skills', career.career_skills || []);
 
       this.onUpdate();
     },
@@ -117,7 +131,8 @@ export default Component.extend({
       
       if (!specConfig) { return; }
 
-      let specializations = this.get('char.specializations') || [];
+      let ffgData = this.get('ffgData');
+      let specializations = ffgData.specializations || [];
       
       // Check if already have it
       if (specializations.find(s => s.name === specName)) {
@@ -133,17 +148,17 @@ export default Component.extend({
       });
 
       // Update career_skills to include spec skills
-      let careerSkills = this.get('char.career_skills') || [];
+      let careerSkills = ffgData.career_skills || [];
       let allCareerSkills = [...careerSkills];
       (specConfig.career_skills || []).forEach(skill => {
         if (!allCareerSkills.includes(skill)) {
           allCareerSkills.push(skill);
         }
       });
-      set(this.char, 'career_skills', allCareerSkills);
+      set(ffgData, 'career_skills', allCareerSkills);
 
       // Update is_career flag on skills
-      let skills = this.get('char.skills') || [];
+      let skills = ffgData.skills || [];
       skills.forEach(skill => {
         set(skill, 'is_career', allCareerSkills.includes(skill.name));
       });
@@ -157,12 +172,13 @@ export default Component.extend({
         return;
       }
 
-      let specializations = this.get('char.specializations') || [];
+      let ffgData = this.get('ffgData');
+      let specializations = ffgData.specializations || [];
       let filtered = specializations.filter(s => s.name !== specName);
-      set(this.char, 'specializations', filtered);
+      set(ffgData, 'specializations', filtered);
 
       // Rebuild career_skills
-      let careerSkills = this.get('char.career.career_skills') || [];
+      let careerSkills = ffgData.career && ffgData.career.career_skills ? ffgData.career.career_skills : [];
       let allCareerSkills = [...careerSkills];
       filtered.forEach(spec => {
         (spec.career_skills || []).forEach(skill => {
@@ -171,10 +187,10 @@ export default Component.extend({
           }
         });
       });
-      set(this.char, 'career_skills', allCareerSkills);
+      set(ffgData, 'career_skills', allCareerSkills);
 
       // Update is_career flag on skills
-      let skills = this.get('char.skills') || [];
+      let skills = ffgData.skills || [];
       skills.forEach(skill => {
         set(skill, 'is_career', allCareerSkills.includes(skill.name));
       });

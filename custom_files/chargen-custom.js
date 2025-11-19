@@ -11,6 +11,15 @@ export default Component.extend({
     this._super(...arguments);
     let self = this;
     this.set('updateCallback', function() { return self.onUpdate(); });
+    
+    // IMPORTANT: Initialize custom.ffg if it doesn't exist
+    if (!this.get('char.custom')) {
+      this.set('char.custom', {});
+    }
+    if (!this.get('char.custom.ffg')) {
+      this.set('char.custom.ffg', this.get('char.custom.ffg') || {});
+    }
+    
     this.validateChar();
   },
 
@@ -20,12 +29,12 @@ export default Component.extend({
 
   validateChar() {
     let errors = A();
-    let char = this.get('char') || {};
-    let cgInfo = this.get('cgInfo') || {};
+    let char = this.get('char.custom.ffg') || {};
+    let cgInfo = this.get('char.custom.cg_ffg') || {};
 
     let characteristics = char.characteristics || [];
     let skills = char.skills || [];
-    let careerSkills = char.career_skills || []; // This comes from the server now
+    let careerSkills = char.career_skills || [];
     let archetype = char.archetype;
     let career = char.career;
 

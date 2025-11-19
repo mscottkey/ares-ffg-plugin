@@ -1,8 +1,6 @@
 <div role="tabpanel" class="tab-pane" id="ffgsystem">
   <FfgChargen 
-    @name={{this.char.name}} 
-    @char={{this.char.custom.ffg}} 
-    @cgInfo={{this.char.custom.cg_ffg}} 
-    @updated={{this.abilityChanged}}
+    @char={{this.char}}
+    @updated={{action "abilityChanged"}}
   />
 </div>
