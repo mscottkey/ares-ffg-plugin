@@ -222,11 +222,8 @@ module AresMUSH
       end
 
       # === CHARGEN VIEW ===
-
-      # Config lists (from the ffg_* config files)
       config_chars   = Global.read_config("ffg", "characteristics") || []
       config_skills  = Global.read_config("ffg", "skills") || []
-      config_talents = Global.read_config("ffg", "talents") || []
 
       # Build characteristics list: always one row per config entry.
       characteristics = config_chars.map do |c|
@@ -259,60 +256,202 @@ module AresMUSH
         }
       end
 
-      wounds = {
-        current: char.ffg_wounds || 0,
-        max:     char.ffg_wound_threshold || 0
-      }
+      # Get archetype info
+      archetype_data = nil
+      if char.ffg_archetype
+        arch_config = Ffg.find_archetype_config(char.ffg_archetype)
+        if arch_config
+          archetype_data = {
+            name: char.ffg_archetype,
+            characteristics: arch_config['characteristics'],
+            wound: arch_config['wound'],
+            strain: arch_config['strain'],
+            xp: arch_config['xp']
+          }
+        end
+      end
 
-      strain = {
-        current: char.ffg_strain || 0,
-        max:     char.ffg_strain_threshold || 0
-      }
-
-      # Career skills list for the current career (for web UI validation).
+      # Get career info
+      career_data = nil
       career_skills = []
       if char.ffg_career
         career_config = Ffg.find_career_config(char.ffg_career)
-        career_skills = career_config ? (career_config['career_skills'] || []) : []
+        if career_config
+          career_skills = career_config['career_skills'] || []
+          career_data = {
+            name: char.ffg_career,
+            career_skills: career_skills
+          }
+        end
       end
 
-      # Starting XP from archetype, for live XP meters in the UI.
-      starting_xp = 0
-      if char.ffg_archetype
-        archetype_config = Ffg.find_archetype_config(char.ffg_archetype)
-        starting_xp = archetype_config ? (archetype_config['xp'] || 0) : 0
-      end
+      # Get specializations
+      specializations = (char.ffg_specializations || []).map do |spec_name|
+        spec_config = Ffg.find_specialization_config(spec_name)
+        if spec_config
+          {
+            name: spec_name,
+            career: spec_config['career'],
+            career_skills: spec_config['career_skills'] || [],
+            force_user: spec_config['force_user']
+          }
+        else
+          { name: spec_name }
+        end
+      end.compact
+
+      # Calculate XP values
+      starting_xp = archetype_data ? (archetype_data[:xp] || 0) : 0
+      bonus_xp = Global.read_config('ffg', 'bonus_xp') || 0
+      career_xp = Global.read_config('ffg', 'career_skill_xp') || 0
 
       {
-        summary:         nil, # you can wire this later if you want
+        archetype:       archetype_data,
+        career:          career_data,
+        specializations: specializations,
         characteristics: characteristics,
         skills:          skills,
         talents:         talents,
-        wounds:          wounds,
-        strain:          strain,
+        wounds:          {
+          current: char.ffg_wounds || 0,
+          max:     char.ffg_wound_threshold || 0
+        },
+        strain:          {
+          current: char.ffg_strain || 0,
+          max:     char.ffg_strain_threshold || 0
+        },
         career_skills:   career_skills,
-        starting_xp:     starting_xp
+        starting_xp:     starting_xp + bonus_xp + career_xp,
+        current_xp:      char.ffg_xp || 0
       }
     end
 
     # Build web chargen config info (limits, XP rules, etc.)
     # Values come from game/config/ffg_general.yml (ffg: ...).
-    def self.build_web_chargen_info
-      # For debugging: confirm talents config is present
-      Global.logger.debug "FFG cg_info talents size: #{(Global.read_config('ffg', 'talents') || []).length}"
+    def self.build_web_char_data(char, viewer, chargen)
+      if !chargen
+        sheet = SheetTemplate.new(char)
+        return sheet.to_h
+      end
+
+      # === CHARGEN VIEW ===
+      config_chars   = Global.read_config("ffg", "characteristics") || []
+      config_skills  = Global.read_config("ffg", "skills") || []
+
+      # Build list of all career skills
+      all_career_skills = []
+      if char.ffg_career
+        career_config = Ffg.find_career_config(char.ffg_career)
+        all_career_skills = career_config ? (career_config['career_skills'] || []) : []
+      end
+      
+      # Add specialization skills
+      (char.ffg_specializations || []).each do |spec_name|
+        spec_config = Ffg.find_specialization_config(spec_name)
+        if spec_config
+          all_career_skills += (spec_config['career_skills'] || [])
+        end
+      end
+      all_career_skills = all_career_skills.uniq
+
+      characteristics = config_chars.map do |c|
+        rec = char.ffg_characteristics.select { |a| a.name == c['name'] }.first
+        {
+          name:   c['name'],
+          desc:   c['description'],
+          rating: rec ? rec.rating : 0
+        }
+      end
+
+      # Build skills list with career flag
+      skills = config_skills.map do |s|
+        rec = char.ffg_skills.select { |a| a.name == s['name'] }.first
+        {
+          name:           s['name'],
+          desc:           s['description'],
+          characteristic: s['characteristic'],
+          rating:         rec ? rec.rating : 0,
+          is_career:      all_career_skills.include?(s['name'])
+        }
+      end
+
+      talents = char.ffg_talents.map do |t|
+        {
+          name:           t.name,
+          rank:           t.ranked ? t.rating : nil,
+          tier:           t.tier,
+          specialization: t.specialization
+        }
+      end
+
+      # Get archetype info
+      archetype_data = nil
+      if char.ffg_archetype
+        arch_config = Ffg.find_archetype_config(char.ffg_archetype)
+        if arch_config
+          archetype_data = {
+            name: char.ffg_archetype,
+            characteristics: arch_config['characteristics'],
+            wound: arch_config['wound'],
+            strain: arch_config['strain'],
+            xp: arch_config['xp']
+          }
+        end
+      end
+
+      # Get career info
+      career_data = nil
+      career_skills = []
+      if char.ffg_career
+        career_config = Ffg.find_career_config(char.ffg_career)
+        if career_config
+          career_skills = career_config['career_skills'] || []
+          career_data = {
+            name: char.ffg_career,
+            career_skills: career_skills
+          }
+        end
+      end
+
+      # Get specializations
+      specializations = (char.ffg_specializations || []).map do |spec_name|
+        spec_config = Ffg.find_specialization_config(spec_name)
+        if spec_config
+          {
+            name: spec_name,
+            career: spec_config['career'],
+            career_skills: spec_config['career_skills'] || [],
+            force_user: spec_config['force_user']
+          }
+        else
+          { name: spec_name }
+        end
+      end.compact
+
+      starting_xp = archetype_data ? (archetype_data[:xp] || 0) : 0
+      bonus_xp = Global.read_config('ffg', 'bonus_xp') || 0
+      career_xp = Global.read_config('ffg', 'career_skill_xp') || 0
+
       {
-        max_cg_characteristic_rating: Global.read_config("ffg", "max_cg_characteristic_rating"),
-        max_cg_skill_rating:          Global.read_config("ffg", "max_cg_skill_rating"),
-        talents:                      Global.read_config('ffg', 'talents'),
-        bonus_xp:                     Global.read_config("ffg", "bonus_xp"),
-        career_skill_xp:              Global.read_config("ffg", "career_skill_xp"),
-        use_force:                    Global.read_config("ffg", "use_force"),
-        min_career_skills:            Global.read_config("ffg", "min_career_skills"),
-        wound_characteristic:         Global.read_config("ffg", "wound_characteristic"),
-        strain_characteristic:        Global.read_config("ffg", "strain_characteristic")
+        archetype:       archetype_data,
+        career:          career_data,
+        specializations: specializations,
+        characteristics: characteristics,
+        skills:          skills,
+        talents:         talents,
+        wounds:          {
+          current: char.ffg_wounds || 0,
+          max:     char.ffg_wound_threshold || 0
+        },
+        strain:          {
+          current: char.ffg_strain || 0,
+          max:     char.ffg_strain_threshold || 0
+        },
+        career_skills:   all_career_skills,
+        starting_xp:     starting_xp + bonus_xp + career_xp,
+        current_xp:      char.ffg_xp || 0
       }
     end
-
     # ------------------------------------------------------------
     # Web chargen save hook – server-side validation
     # ------------------------------------------------------------
@@ -414,7 +553,7 @@ module AresMUSH
         errors << "There was a problem saving your talents.  Please try again or contact staff."
       end
 
-      # For now we’re *not* doing full XP math here – just hard caps
+      # For now we're *not* doing full XP math here – just hard caps
       # on characteristics/skills. XP accounting can be layered on later.
       errors
     end

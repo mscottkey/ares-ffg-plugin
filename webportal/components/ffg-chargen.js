@@ -1,123 +1,71 @@
 import Component from '@ember/component';
 import { inject as service } from '@ember/service';
+import { computed } from '@ember/object';
 
 export default Component.extend({
   tagName: '',
-  gameApi: service(),
   flashMessages: service(),
-
-  // For specialization add flow.
+  gameApi: service(),
   selectedSpecName: null,
 
-  _maxChar() {
-    let info = this.get('cgInfo') || {};
-    return info.max_cg_characteristic_rating || 5;
+  didInsertElement() {
+    this._super(...arguments);
+    let self = this;
+    this.set('updateCallback', function() { return self.onUpdate(); });
   },
 
-  _maxSkill() {
-    let info = this.get('cgInfo') || {};
-    return info.max_cg_skill_rating || 2;
-  },
-
-  _notifyUpdated() {
-    // Call the parent-provided callback so chargen-custom can revalidate.
-    let updated = this.get('updated');
-    if (updated) {
-      updated();
+  onUpdate() {
+    if (this.updated) {
+      this.updated();
     }
   },
 
+  // Filter available specializations
+  availableSpecs: computed('cgInfo.specializations', 'char.career.name', 'char.specializations.@each.name', function() {
+    let allSpecs = this.get('cgInfo.specializations') || [];
+    let careerName = this.get('char.career.name');
+    let currentSpecs = (this.get('char.specializations') || []).map(s => s.name);
+    
+    return allSpecs.filter(spec => {
+      if (currentSpecs.includes(spec.name)) {
+        return false;
+      }
+      return !spec.career || spec.career === careerName;
+    });
+  }),
+
+  // Calculate spent XP
+  spentXP: computed('char.starting_xp', 'char.current_xp', function() {
+    let starting = this.get('char.starting_xp') || 0;
+    let current = this.get('char.current_xp') || 0;
+    return starting - current;
+  }),
+
   actions: {
-    // ----- EXISTING ACTIONS -----
-
-    changeCharacteristic(row, delta) {
-      if (!row) { return; }
-
-      let maxChar = this._maxChar();
-      let current = row.rating || 0;
-      let next = current + delta;
-
-      if (next < 0) {
-        next = 0;
-      }
-      if (next > maxChar) {
-        next = maxChar;
-      }
-
-      // Mutate in place – these objects come from @char.characteristics
-      row.rating = next;
-
-      this._notifyUpdated();
+    abilityChanged() {
+      this.onUpdate();
     },
-
-    changeSkill(row, delta) {
-      if (!row) { return; }
-
-      let maxSkill = this._maxSkill();
-      let current = row.rating || 0;
-      let next = current + delta;
-
-      if (next < 0) {
-        next = 0;
-      }
-      if (next > maxSkill) {
-        next = maxSkill;
-      }
-
-      row.rating = next;
-
-      this._notifyUpdated();
-    },
-
-    addTalent(name) {
-      const gameApi = this.get('gameApi');
-      if (gameApi && gameApi.sendCommand) {
-        gameApi.sendCommand(`talent add ${name}`);
-      } else if (gameApi && gameApi.request) {
-        gameApi.request('/cmd/talent/add', { name }).catch(() => {});
-      }
-      this._notifyUpdated();
-    },
-
-    removeTalent(name) {
-      const gameApi = this.get('gameApi');
-      if (gameApi && gameApi.sendCommand) {
-        gameApi.sendCommand(`talent remove ${name}`);
-      } else if (gameApi && gameApi.request) {
-        gameApi.request('/cmd/talent/remove', { name }).catch(() => {});
-      }
-      this._notifyUpdated();
-    },
-
-    // ----- NEW ACTIONS FOR ARCHETYPE/CAREER/SPECS -----
 
     selectArchetype(event) {
       let archetype = event.target.value;
       if (!archetype) { return; }
 
-      let char = this.get('char');
-      if (!char) { return; }
+      let name = this.get('name');
+      if (!name) { return; }
 
       this.get('gameApi').requestOne('setFFGArchetype', {
-        id: char.id,
+        id: name,
         archetype: archetype
       }).then((response) => {
-        if (!response) { return; }
-
         if (response.error) {
-          this.get('flashMessages')?.danger(response.error);
+          this.get('flashMessages').danger(response.error);
           return;
         }
 
-        // Adjust this depending on how your handler responds.
         if (response.char) {
           this.set('char', response.char);
-        } else if (response.custom) {
-          char.custom = response.custom;
-          this.set('char', char);
+          this.onUpdate();
         }
-
-        this._notifyUpdated();
       });
     },
 
@@ -125,28 +73,22 @@ export default Component.extend({
       let career = event.target.value;
       if (!career) { return; }
 
-      let char = this.get('char');
-      if (!char) { return; }
+      let name = this.get('name');
+      if (!name) { return; }
 
       this.get('gameApi').requestOne('setFFGCareer', {
-        id: char.id,
+        id: name,
         career: career
       }).then((response) => {
-        if (!response) { return; }
-
         if (response.error) {
-          this.get('flashMessages')?.danger(response.error);
+          this.get('flashMessages').danger(response.error);
           return;
         }
 
         if (response.char) {
           this.set('char', response.char);
-        } else if (response.custom) {
-          char.custom = response.custom;
-          this.set('char', char);
+          this.onUpdate();
         }
-
-        this._notifyUpdated();
       });
     },
 
@@ -158,28 +100,47 @@ export default Component.extend({
       let specialization = this.get('selectedSpecName');
       if (!specialization) { return; }
 
-      let char = this.get('char');
-      if (!char) { return; }
+      let name = this.get('name');
+      if (!name) { return; }
 
       this.get('gameApi').requestOne('addFFGSpecialization', {
-        id: char.id,
+        id: name,
         specialization: specialization
       }).then((response) => {
-        if (!response) { return; }
-
         if (response.error) {
-          this.get('flashMessages')?.danger(response.error);
+          this.get('flashMessages').danger(response.error);
           return;
         }
 
         if (response.char) {
           this.set('char', response.char);
-        } else if (response.custom) {
-          char.custom = response.custom;
-          this.set('char', char);
+          this.set('selectedSpecName', null);
+          this.onUpdate();
+        }
+      });
+    },
+
+    removeSpecialization(specName) {
+      if (!confirm(`Remove specialization: ${specName}?`)) {
+        return;
+      }
+
+      let name = this.get('name');
+      if (!name) { return; }
+
+      this.get('gameApi').requestOne('removeFFGSpecialization', {
+        id: name,
+        specialization: specName
+      }).then((response) => {
+        if (response.error) {
+          this.get('flashMessages').danger(response.error);
+          return;
         }
 
-        this._notifyUpdated();
+        if (response.char) {
+          this.set('char', response.char);
+          this.onUpdate();
+        }
       });
     }
   }
