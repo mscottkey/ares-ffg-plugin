@@ -13,6 +13,21 @@
   {{/if}}
 
   <ul class="nav nav-tabs" role="tablist">
+     <li class="nav-item" role="presentation">
+      <a href="#ffg-archetype" class="nav-link" role="tab" data-bs-toggle="tab">
+        Archetype
+      </a>
+    </li>
+    <li class="nav-item" role="presentation">
+      <a href="#ffg-career" class="nav-link" role="tab" data-bs-toggle="tab">
+        Career
+      </a>
+    </li>
+    <li class="nav-item" role="presentation">
+      <a href="#ffg-specializations" class="nav-link" role="tab" data-bs-toggle="tab">
+        Specializations
+      </a>
+    </li>
     <li class="nav-item" role="presentation">
       <a href="#ffg-chars" class="nav-link active" role="tab" data-bs-toggle="tab">
         Characteristics
@@ -32,6 +47,84 @@
 
   <div class="tab-content" style="margin-top:1rem;">
 
+    {{!-- Archetype --}}
+
+    <div class="tab-pane" id="ffg-archetype" role="tabpanel">
+      <h3>Archetype</h3>
+      <select {{on "change" this.selectArchetype}}>
+        <option value="">-- Choose Archetype --</option>
+        {{#each this.cgInfo.archetypes as |arch|}}
+          <option
+            value={{arch.name}}
+            selected={{eq arch.name this.ffg.archetype.name}}
+          >
+            {{arch.name}}
+          </option>
+        {{/each}}
+      </select>
+
+      {{#if this.ffg.archetype}}
+        <p class="mt-2">
+          Wounds: {{this.ffg.wounds.max}} • Strain: {{this.ffg.strain.max}} • XP: {{this.ffg.starting_xp}}
+        </p>
+      {{/if}}
+    </div>
+
+    {{!-- Career --}}
+
+    <div class="tab-pane" id="ffg-career" role="tabpanel">
+      <h3>Career</h3>
+      <select {{on "change" this.selectCareer}}>
+        <option value="">-- Choose Career --</option>
+        {{#each this.cgInfo.careers as |car|}}
+          <option
+            value={{car.name}}
+            selected={{eq car.name this.ffg.career.name}}
+          >
+            {{car.name}}
+          </option>
+        {{/each}}
+      </select>
+
+      {{#if this.ffg.career}}
+        <p class="mt-2">Career Skills:</p>
+        <ul>
+          {{#each this.ffg.career.career_skills as |skill|}}
+            <li>{{skill}}</li>
+          {{/each}}
+        </ul>
+      {{/if}}
+    </div>
+
+    {{!-- Specializations --}}
+
+    <div class="tab-pane" id="ffg-specializations" role="tabpanel">
+      <h3>Specializations</h3>
+
+      <div class="mb-2">
+        <select {{on "change" this.updateSpecSelection}}>
+          <option value="">-- Add Specialization --</option>
+          {{#each this.cgInfo.specializations as |spec|}}
+            <option value={{spec.name}}>
+              {{spec.name}} {{#if spec.career}}({{spec.career}}){{/if}}
+            </option>
+          {{/each}}
+        </select>
+        <button class="btn btn-primary btn-sm ms-2" {{on "click" this.addSpecialization}}>
+          Add
+        </button>
+      </div>
+
+      <ul>
+        {{#each this.ffg.specializations as |spec|}}
+          <li>
+            {{spec.name}}
+            {{#if spec.career}} ({{spec.career}}) {{/if}}
+            {{#if spec.force_user}} • Force User {{/if}}
+          </li>
+        {{/each}}
+      </ul>
+    </div>
     {{!-- Characteristics --}}
     <div id="ffg-chars" class="tab-pane active" role="tabpanel">
       <h3>Characteristics</h3>

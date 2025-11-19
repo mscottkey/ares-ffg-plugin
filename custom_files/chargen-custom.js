@@ -32,6 +32,19 @@ export default Component.extend({
     let skills            = ffg.skills || [];
     let careerSkillNames  = ffg.career_skills || [];
 
+    // NEW: current selections (will be filled once backend supports them)
+    let archetype         = ffg.archetype || null;
+    let career            = ffg.career || null;
+    let specializations   = ffg.specializations || [];
+
+    // NEW: option lists from YAML (once exposed in cg_ffg)
+    let archetypeOptions  = cgInfo.archetypes || [];
+    let careerOptions     = cgInfo.careers || [];
+    let specOptions       = cgInfo.specializations || [];
+
+    // Optional future config for specs; safe default if not present.
+    let minSpecializations = cgInfo.min_specializations || 0;
+
     let maxChar          = cgInfo.max_cg_characteristic_rating || 5;
     let maxSkill         = cgInfo.max_cg_skill_rating || 2;
     let minCareerSkills  = cgInfo.min_career_skills || 0;
@@ -67,6 +80,34 @@ export default Component.extend({
       if (taken < minCareerSkills) {
         errors.pushObject(
           `You must take at least ${minCareerSkills} career skills; you currently have ${taken}.`
+        );
+      }
+    }
+
+    // --- Archetype required (if game defines archetypes) ---
+    // Only enforce if we actually have archetype options configured.
+    if (archetypeOptions.length > 0) {
+      if (!archetype || !archetype.name) {
+        errors.pushObject(
+          'You must choose an archetype / species.'
+        );
+      }
+    }
+
+    // --- Career required (if game defines careers) ---
+    if (careerOptions.length > 0) {
+      if (!career || !career.name) {
+        errors.pushObject(
+          'You must choose a career.'
+        );
+      }
+    }
+
+    // --- Specializations minimum (optional, only if you later configure it) ---
+    if (specOptions.length > 0 && minSpecializations > 0) {
+      if (specializations.length < minSpecializations) {
+        errors.pushObject(
+          `You must choose at least ${minSpecializations} specialization${minSpecializations === 1 ? '' : 's'}.`
         );
       }
     }
