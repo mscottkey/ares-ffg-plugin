@@ -1,42 +1,80 @@
+import EmberObject, { computed } from '@ember/object';
+import { A } from '@ember/array';
 import Component from '@ember/component';
 import { inject as service } from '@ember/service';
-import { A } from '@ember/array';
 
 export default Component.extend({
   tagName: '',
   flashMessages: service(),
   gameApi: service(),
-
-  didInsertElement() {
+  
+  didInsertElement: function() {
     this._super(...arguments);
     let self = this;
-    this.set('updateCallback', function() { return self.onUpdate(); });
-    
-    // IMPORTANT: Initialize custom.ffg if it doesn't exist
-    if (!this.get('char.custom')) {
-      this.set('char.custom', {});
-    }
-    if (!this.get('char.custom.ffg')) {
-      this.set('char.custom.ffg', this.get('char.custom.ffg') || {});
-    }
-    
-    this.validateChar();
+    this.set('updateCallback', function() { return self.onUpdate(); } );
   },
-
-  onUpdate() {
-    this.validateChar();
+  
+  onUpdate: function() {
+    // This returns the data structure that will be saved
+    // It should return PLAIN objects, not Ember objects with getters/setters
+    let ffg = this.get('char.custom.ffg') || {};
+    
+    return {
+      ffg: {
+        archetype: ffg.archetype ? {
+          name: ffg.archetype.name,
+          characteristics: ffg.archetype.characteristics,
+          wound: ffg.archetype.wound,
+          strain: ffg.archetype.strain,
+          xp: ffg.archetype.xp
+        } : null,
+        career: ffg.career ? {
+          name: ffg.career.name,
+          career_skills: ffg.career.career_skills || []
+        } : null,
+        career_skills: ffg.career_skills || [],
+        specializations: (ffg.specializations || []).map(s => ({
+          name: s.name,
+          career: s.career,
+          career_skills: s.career_skills || [],
+          force_user: s.force_user
+        })),
+        characteristics: (ffg.characteristics || []).map(c => ({
+          name: c.name,
+          desc: c.desc,
+          rating: c.rating || 0
+        })),
+        skills: (ffg.skills || []).map(s => ({
+          name: s.name,
+          desc: s.desc,
+          characteristic: s.characteristic,
+          rating: s.rating || 0,
+          is_career: s.is_career
+        })),
+        talents: (ffg.talents || []).map(t => ({
+          name: t.name,
+          rank: t.rank,
+          tier: t.tier,
+          specialization: t.specialization
+        })),
+        starting_xp: ffg.starting_xp,
+        current_xp: ffg.current_xp,
+        wounds: ffg.wounds,
+        strain: ffg.strain
+      }
+    };
   },
-
-  validateChar() {
+  
+  validateChar: function() {
     let errors = A();
-    let char = this.get('char.custom.ffg') || {};
+    let ffg = this.get('char.custom.ffg') || {};
     let cgInfo = this.get('char.custom.cg_ffg') || {};
 
-    let characteristics = char.characteristics || [];
-    let skills = char.skills || [];
-    let careerSkills = char.career_skills || [];
-    let archetype = char.archetype;
-    let career = char.career;
+    let characteristics = ffg.characteristics || [];
+    let skills = ffg.skills || [];
+    let careerSkills = ffg.career_skills || [];
+    let archetype = ffg.archetype;
+    let career = ffg.career;
 
     let maxChar = cgInfo.max_cg_characteristic_rating || 5;
     let maxSkill = cgInfo.max_cg_skill_rating || 2;
@@ -92,13 +130,10 @@ export default Component.extend({
 
     this.set('charErrors', errors);
   },
-
+  
   actions: {
     abilityChanged() {
       this.validateChar();
-      if (this.updateCallback) {
-        this.updateCallback();
-      }
     }
   }
 });

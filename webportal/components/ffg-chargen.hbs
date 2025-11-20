@@ -1,6 +1,23 @@
 <section class="sheet-section">
   <h2>FFG Character Creation</h2>
 
+  {{! XP Summary Bar - Shows on ALL tabs }}
+  {{#if this.char.custom.ffg.archetype}}
+    <div class="alert alert-primary mb-3">
+      <div class="row">
+        <div class="col-md-4">
+          <strong>Starting XP:</strong> {{this.char.custom.ffg.starting_xp}}
+        </div>
+        <div class="col-md-4">
+          <strong>Current XP:</strong> {{this.char.custom.ffg.currentXP}}
+        </div>
+        <div class="col-md-4">
+          <strong>Spent XP:</strong> {{this.spentXP}}
+        </div>
+      </div>
+    </div>
+  {{/if}}
+
   <ul class="nav nav-tabs" role="tablist">
     <li class="nav-item" role="presentation">
       <a href="#ffg-basics" class="nav-link active" role="tab" data-bs-toggle="tab">
@@ -28,7 +45,7 @@
     {{! Basics - Combined Archetype/Career/Specs }}
     <div class="tab-pane active" id="ffg-basics" role="tabpanel">
       <h3>Basics</h3>
-      <p class="text-muted">
+      <p>
         Choose your character's archetype (species/origin), career, and specializations.
       </p>
       
@@ -37,29 +54,29 @@
           <label class="form-label"><strong>Archetype / Species</strong></label>
           <select class="form-select" {{on "change" (action "selectArchetype")}}>
             <option value="">-- Choose Archetype --</option>
-            {{#each this.cgInfo.archetypes as |arch|}}
+            {{#each this.char.custom.cg_ffg.archetypes as |arch|}}
               <option
                 value={{arch.name}}
-                selected={{eq arch.name this.ffgData.archetype.name}}
+                selected={{eq arch.name this.char.custom.ffg.archetype.name}}
               >
                 {{arch.name}}
               </option>
             {{/each}}
           </select>
           
-          {{#if this.ffgData.archetype}}
+          {{#if this.char.custom.ffg.archetype}}
             <div class="alert alert-info mt-2">
-              <strong>{{this.ffgData.archetype.name}}</strong><br>
+              <strong>{{this.char.custom.ffg.archetype.name}}</strong><br>
               <small>
-                Wound Threshold: {{this.ffgData.archetype.wound}} • 
-                Strain Threshold: {{this.ffgData.archetype.strain}} • 
-                Starting XP: {{this.ffgData.archetype.xp}}
+                Wound Threshold: {{this.char.custom.ffg.archetype.wound}} • 
+                Strain Threshold: {{this.char.custom.ffg.archetype.strain}} • 
+                Starting XP: {{this.char.custom.ffg.archetype.xp}}
               </small>
-              {{#if this.ffgData.archetype.characteristics}}
+              {{#if this.char.custom.ffg.archetype.characteristics}}
                 <div class="mt-1">
                   <small><strong>Starting Characteristics:</strong></small><br>
                   <small>
-                    {{#each-in this.ffgData.archetype.characteristics as |name value|}}
+                    {{#each-in this.char.custom.ffg.archetype.characteristics as |name value|}}
                       {{name}}: {{value}}&nbsp;&nbsp;
                     {{/each-in}}
                   </small>
@@ -73,23 +90,23 @@
           <label class="form-label"><strong>Career</strong></label>
           <select class="form-select" {{on "change" (action "selectCareer")}}>
             <option value="">-- Choose Career --</option>
-            {{#each this.cgInfo.careers as |car|}}
+            {{#each this.char.custom.cg_ffg.careers as |car|}}
               <option
                 value={{car.name}}
-                selected={{eq car.name this.ffgData.career.name}}
+                selected={{eq car.name this.char.custom.ffg.career.name}}
               >
                 {{car.name}}
               </option>
             {{/each}}
           </select>
 
-          {{#if this.ffgData.career}}
+          {{#if this.char.custom.ffg.career}}
             <div class="alert alert-info mt-2">
-              <strong>{{this.ffgData.career.name}}</strong><br>
-              {{#if this.ffgData.career.career_skills}}
+              <strong>{{this.char.custom.ffg.career.name}}</strong><br>
+              {{#if this.char.custom.ffg.career.career_skills}}
                 <small><strong>Career Skills:</strong></small><br>
                 <small>
-                  {{#each this.ffgData.career.career_skills as |skill|}}
+                  {{#each this.char.custom.ffg.career.career_skills as |skill|}}
                     {{skill}}{{#if @last}}{{else}}, {{/if}}
                   {{/each}}
                 </small>
@@ -100,10 +117,10 @@
       </div>
 
       {{! Specializations Section }}
-      {{#if this.cgInfo.specializations}}
+      {{#if this.char.custom.cg_ffg.specializations}}
         <div class="mt-4">
           <h4>Specializations</h4>
-          <p class="text-muted small">
+          <p class="small">
             Your first specialization is free. Additional specializations cost XP.
             Specializations grant additional career skills and may unlock talents.
           </p>
@@ -135,11 +152,11 @@
             </div>
           </div>
 
-          {{#if this.ffgData.specializations}}
+          {{#if this.char.custom.ffg.specializations}}
             <div class="mt-3">
               <strong>Your Specializations:</strong>
               <ul class="list-group mt-2">
-                {{#each this.ffgData.specializations as |spec index|}}
+                {{#each this.char.custom.ffg.specializations as |spec index|}}
                   <li class="list-group-item d-flex justify-content-between align-items-center">
                     <div>
                       <strong>{{spec.name}}</strong>
@@ -156,7 +173,7 @@
                       {{/if}}
                       {{#if spec.career_skills}}
                         <br>
-                        <small class="text-muted">
+                        <small>
                           Skills: 
                           {{#each spec.career_skills as |skill|}}
                             {{skill}}{{#if @last}}{{else}}, {{/if}}
@@ -177,32 +194,14 @@
           {{/if}}
         </div>
       {{/if}}
-
-      {{! XP Summary }}
-      {{#if this.ffgData.archetype}}
-        <div class="alert alert-primary mt-4">
-          <h5>Experience Points (XP)</h5>
-          <div class="row">
-            <div class="col-md-4">
-              <strong>Starting XP:</strong> {{this.ffgData.starting_xp}}
-            </div>
-            <div class="col-md-4">
-              <strong>Current XP:</strong> {{this.ffgData.current_xp}}
-            </div>
-            <div class="col-md-4">
-              <strong>Spent XP:</strong> {{this.spentXP}}
-            </div>
-          </div>
-        </div>
-      {{/if}}
     </div>
 
     {{! Characteristics }}
     <div id="ffg-chars" class="tab-pane" role="tabpanel">
       <h3>Characteristics</h3>
-      <p class="text-muted">
+      <p>
         Characteristics represent your character's raw physical and mental attributes.
-        Maximum rating in chargen: {{this.cgInfo.max_cg_characteristic_rating}}
+        Maximum rating in chargen: {{this.char.custom.cg_ffg.max_cg_characteristic_rating}}
       </p>
       <table class="table table-striped">
         <thead>
@@ -213,10 +212,10 @@
           </tr>
         </thead>
         <tbody>
-          {{#each this.ffgData.characteristics as |c|}}
+          {{#each this.char.custom.ffg.characteristics as |c|}}
             <FfgCharacteristicRow
               @charac={{c}}
-              @maxRating={{this.cgInfo.max_cg_characteristic_rating}}
+              @maxRating={{this.char.custom.cg_ffg.max_cg_characteristic_rating}}
               @updated={{action "abilityChanged"}}
             />
           {{/each}}
@@ -227,12 +226,12 @@
     {{! Skills }}
     <div id="ffg-skills" class="tab-pane" role="tabpanel">
       <h3>Skills</h3>
-      <p class="text-muted">
+      <p>
         Skills represent your character's training and expertise.
-        Maximum rating in chargen: {{this.cgInfo.max_cg_skill_rating}}
+        Maximum rating in chargen: {{this.char.custom.cg_ffg.max_cg_skill_rating}}
         <br>
         <strong>Career skills</strong> are highlighted and cost less XP to improve.
-        You must take at least {{this.cgInfo.min_career_skills}} career skills.
+        You must take at least {{this.char.custom.cg_ffg.min_career_skills}} career skills.
       </p>
       <table class="table table-striped">
         <thead>
@@ -244,12 +243,12 @@
           </tr>
         </thead>
         <tbody>
-          {{#each this.ffgData.skills as |s|}}
-            <tr class="{{if s.is_career 'table-success'}}">
+          {{#each this.char.custom.ffg.skills as |s|}}
+            <tr>
               <td>
                 <strong>{{s.name}}</strong>
                 {{#if s.desc}}
-                  <br><small class="text-muted">{{s.desc}}</small>
+                  <br><small>{{s.desc}}</small>
                 {{/if}}
               </td>
               <td>{{s.characteristic}}</td>
@@ -263,7 +262,7 @@
               <td>
                 <FfgSkillRow
                   @skill={{s}}
-                  @maxRating={{this.cgInfo.max_cg_skill_rating}}
+                  @maxRating={{this.char.custom.cg_ffg.max_cg_skill_rating}}
                   @updated={{action "abilityChanged"}}
                 />
               </td>
@@ -276,14 +275,14 @@
     {{! Talents }}
     <div id="ffg-talents" class="tab-pane" role="tabpanel">
       <h3>Talents</h3>
-      <p class="text-muted">
+      <p>
         Talents are special abilities that make your character unique.
         You must maintain a balanced talent pyramid - you need more talents at lower tiers
         to support higher tier talents.
       </p>
       <FfgTalentsList
-        @char={{this.ffgData}}
-        @cgInfo={{this.cgInfo}}
+        @char={{this.char.custom.ffg}}
+        @cgInfo={{this.char.custom.cg_ffg}}
         @updated={{action "abilityChanged"}}
       />
     </div>

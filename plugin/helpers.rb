@@ -240,12 +240,13 @@ module AresMUSH
       end
       all_career_skills = all_career_skills.uniq
 
+      # IMPORTANT: Convert to plain arrays/hashes, not AR objects
       characteristics = config_chars.map do |c|
         rec = char.ffg_characteristics.select { |a| a.name == c['name'] }.first
         {
-          name:   c['name'],
-          desc:   c['description'],
-          rating: rec ? rec.rating : 0
+          'name'   => c['name'],
+          'desc'   => c['description'],
+          'rating' => rec ? rec.rating : 0
         }
       end
 
@@ -253,20 +254,20 @@ module AresMUSH
       skills = config_skills.map do |s|
         rec = char.ffg_skills.select { |a| a.name == s['name'] }.first
         {
-          name:           s['name'],
-          desc:           s['description'],
-          characteristic: s['characteristic'],
-          rating:         rec ? rec.rating : 0,
-          is_career:      all_career_skills.include?(s['name'])
+          'name'           => s['name'],
+          'desc'           => s['description'],
+          'characteristic' => s['characteristic'],
+          'rating'         => rec ? rec.rating : 0,
+          'is_career'      => all_career_skills.include?(s['name'])
         }
       end
 
       talents = char.ffg_talents.map do |t|
         {
-          name:           t.name,
-          rank:           t.ranked ? t.rating : nil,
-          tier:           t.tier,
-          specialization: t.specialization
+          'name'           => t.name,
+          'rank'           => t.ranked ? t.rating : nil,
+          'tier'           => t.tier,
+          'specialization' => t.specialization
         }
       end
 
@@ -276,25 +277,23 @@ module AresMUSH
         arch_config = Ffg.find_archetype_config(char.ffg_archetype)
         if arch_config
           archetype_data = {
-            name: char.ffg_archetype,
-            characteristics: arch_config['characteristics'],
-            wound: arch_config['wound'],
-            strain: arch_config['strain'],
-            xp: arch_config['xp']
+            'name' => char.ffg_archetype,
+            'characteristics' => arch_config['characteristics'],
+            'wound' => arch_config['wound'],
+            'strain' => arch_config['strain'],
+            'xp' => arch_config['xp']
           }
         end
       end
 
       # Get career info
       career_data = nil
-      career_skills = []
       if char.ffg_career
         career_config = Ffg.find_career_config(char.ffg_career)
         if career_config
-          career_skills = career_config['career_skills'] || []
           career_data = {
-            name: char.ffg_career,
-            career_skills: career_skills
+            'name' => char.ffg_career,
+            'career_skills' => career_config['career_skills'] || []
           }
         end
       end
@@ -304,38 +303,38 @@ module AresMUSH
         spec_config = Ffg.find_specialization_config(spec_name)
         if spec_config
           {
-            name: spec_name,
-            career: spec_config['career'],
-            career_skills: spec_config['career_skills'] || [],
-            force_user: spec_config['force_user']
+            'name' => spec_name,
+            'career' => spec_config['career'],
+            'career_skills' => spec_config['career_skills'] || [],
+            'force_user' => spec_config['force_user']
           }
         else
-          { name: spec_name }
+          { 'name' => spec_name }
         end
       end.compact
 
-      starting_xp = archetype_data ? (archetype_data[:xp] || 0) : 0
+      starting_xp = archetype_data ? (archetype_data['xp'] || 0) : 0
       bonus_xp = Global.read_config('ffg', 'bonus_xp') || 0
       career_xp = Global.read_config('ffg', 'career_skill_xp') || 0
 
       {
-        archetype:       archetype_data,
-        career:          career_data,
-        specializations: specializations,
-        characteristics: characteristics,
-        skills:          skills,
-        talents:         talents,
-        wounds:          {
-          current: char.ffg_wounds || 0,
-          max:     char.ffg_wound_threshold || 0
+        'archetype'       => archetype_data,
+        'career'          => career_data,
+        'specializations' => specializations,
+        'characteristics' => characteristics,
+        'skills'          => skills,
+        'talents'         => talents,
+        'wounds'          => {
+          'current' => char.ffg_wounds || 0,
+          'max'     => char.ffg_wound_threshold || 0
         },
-        strain:          {
-          current: char.ffg_strain || 0,
-          max:     char.ffg_strain_threshold || 0
+        'strain'          => {
+          'current' => char.ffg_strain || 0,
+          'max'     => char.ffg_strain_threshold || 0
         },
-        career_skills:   all_career_skills,
-        starting_xp:     starting_xp + bonus_xp + career_xp,
-        current_xp:      char.ffg_xp || 0
+        'career_skills'   => all_career_skills,
+        'starting_xp'     => starting_xp + bonus_xp + career_xp,
+        'current_xp'      => char.ffg_xp || 0
       }
     end
 
@@ -346,48 +345,36 @@ module AresMUSH
       careers_config = Global.read_config("ffg", "careers") || []
       specs_config = Global.read_config("ffg", "specializations") || []
       
-      # Debug logging
-      Global.logger.debug "FFG - Building chargen info"
-      Global.logger.debug "FFG - Archetypes count: #{archetypes_config.length}"
-      Global.logger.debug "FFG - Careers count: #{careers_config.length}"
-      Global.logger.debug "FFG - Specializations count: #{specs_config.length}"
-      
-      result = {
-        max_cg_characteristic_rating: Global.read_config("ffg", "max_cg_characteristic_rating"),
-        max_cg_skill_rating:          Global.read_config("ffg", "max_cg_skill_rating"),
-        talents:                      Global.read_config('ffg', 'talents') || [],
-        bonus_xp:                     Global.read_config("ffg", "bonus_xp"),
-        career_skill_xp:              Global.read_config("ffg", "career_skill_xp"),
-        use_force:                    Global.read_config("ffg", "use_force"),
-        min_career_skills:            Global.read_config("ffg", "min_career_skills"),
-        wound_characteristic:         Global.read_config("ffg", "wound_characteristic"),
-        strain_characteristic:        Global.read_config("ffg", "strain_characteristic"),
-        archetypes:                   archetypes_config.map { |a| {
-          name: a['name'],
-          characteristics: a['characteristics'],
-          wound: a['wound'],
-          strain: a['strain'],
-          xp: a['xp'],
-          skills: a['skills'] || [],
-          talents: a['talents'] || []
+      {
+        'max_cg_characteristic_rating' => Global.read_config("ffg", "max_cg_characteristic_rating"),
+        'max_cg_skill_rating'          => Global.read_config("ffg", "max_cg_skill_rating"),
+        'talents'                      => Global.read_config('ffg', 'talents') || [],
+        'bonus_xp'                     => Global.read_config("ffg", "bonus_xp"),
+        'career_skill_xp'              => Global.read_config("ffg", "career_skill_xp"),
+        'use_force'                    => Global.read_config("ffg", "use_force"),
+        'min_career_skills'            => Global.read_config("ffg", "min_career_skills"),
+        'wound_characteristic'         => Global.read_config("ffg", "wound_characteristic"),
+        'strain_characteristic'        => Global.read_config("ffg", "strain_characteristic"),
+        'archetypes'                   => archetypes_config.map { |a| {
+          'name' => a['name'],
+          'characteristics' => a['characteristics'],
+          'wound' => a['wound'],
+          'strain' => a['strain'],
+          'xp' => a['xp'],
+          'skills' => a['skills'] || [],
+          'talents' => a['talents'] || []
         }},
-        careers:                      careers_config.map { |c| {
-          name: c['name'],
-          career_skills: c['career_skills'] || []
+        'careers'                      => careers_config.map { |c| {
+          'name' => c['name'],
+          'career_skills' => c['career_skills'] || []
         }},
-        specializations:              specs_config.map { |s| {
-          name: s['name'],
-          career: s['career'],
-          career_skills: s['career_skills'] || [],
-          force_user: s['force_user']
+        'specializations'              => specs_config.map { |s| {
+          'name' => s['name'],
+          'career' => s['career'],
+          'career_skills' => s['career_skills'] || [],
+          'force_user' => s['force_user']
         }}
       }
-      
-      Global.logger.debug "FFG - Result archetypes: #{result[:archetypes].length}"
-      Global.logger.debug "FFG - Result careers: #{result[:careers].length}"
-      Global.logger.debug "FFG - Result specializations: #{result[:specializations].length}"
-      
-      result
     end
 
     # ------------------------------------------------------------
@@ -399,61 +386,98 @@ module AresMUSH
     def self.save_abilities(char, chargen_data)
       errors = []
 
-      custom = chargen_data[:custom] || chargen_data["custom"] || {}
-      ffg = custom[:ffg] || custom["ffg"] || {}
+      # Debug logging
+      Global.logger.debug "FFG save_abilities called for #{char.name}"
+      Global.logger.debug "FFG chargen_data keys: #{chargen_data.keys.inspect}"
+      
+      custom = chargen_data['custom']
+      if !custom
+        Global.logger.warn "FFG: No custom data in chargen_data"
+        return errors
+      end
+      
+      Global.logger.debug "FFG custom keys: #{custom.keys.inspect}"
+      
+      ffg = custom['ffg']
+      if !ffg
+        Global.logger.warn "FFG: No ffg data in custom"
+        return errors
+      end
+      
+      Global.logger.debug "FFG ffg keys: #{ffg.keys.inspect}"
 
-      # Get archetype
-      archetype_data = ffg[:archetype] || ffg["archetype"]
-      if archetype_data
-        archetype_name = archetype_data[:name] || archetype_data["name"]
-        if archetype_name && Ffg.is_valid_archetype?(archetype_name)
-          # Only set if it's changed
+      # Handle archetype
+      archetype_data = ffg['archetype']
+      if archetype_data && archetype_data['name']
+        archetype_name = archetype_data['name']
+        Global.logger.info "FFG: Setting archetype to #{archetype_name}"
+        
+        if Ffg.is_valid_archetype?(archetype_name)
           if char.ffg_archetype != archetype_name
+            Global.logger.info "FFG: Archetype changed, resetting character"
             char.update(ffg_archetype: archetype_name)
             char.delete_ffg_abilities
             
             config = Ffg.find_archetype_config(archetype_name)
+            
+            # Set starting characteristics from archetype
             (config['characteristics'] || {}).each do |name, rating|
               Ffg.set_characteristic(char, name, rating)
             end
             
-            bonus_xp = Global.read_config('ffg', 'bonus_xp')
-            career_xp = Global.read_config('ffg', 'career_skill_xp')
+            # Set starting XP
+            bonus_xp = Global.read_config('ffg', 'bonus_xp') || 0
+            career_xp = Global.read_config('ffg', 'career_skill_xp') || 0
             char.update(ffg_xp: config['xp'] + bonus_xp + career_xp)
             
+            # Set bonuses
             Ffg.set_archetype_bonuses(char, archetype_name)
             Ffg.update_thresholds(char)
           end
+        else
+          Global.logger.warn "FFG: Invalid archetype: #{archetype_name}"
+          errors << t('ffg.invalid_archetype')
         end
       end
 
-      # Get career
-      career_data = ffg[:career] || ffg["career"]
-      if career_data
-        career_name = career_data[:name] || career_data["name"]
-        if career_name && Ffg.is_valid_career?(career_name)
+      # Handle career
+      career_data = ffg['career']
+      if career_data && career_data['name']
+        career_name = career_data['name']
+        Global.logger.info "FFG: Setting career to #{career_name}"
+        
+        if Ffg.is_valid_career?(career_name)
           if char.ffg_career != career_name
             char.update(ffg_career: career_name)
             Ffg.set_career_bonuses(char, career_name)
           end
+        else
+          Global.logger.warn "FFG: Invalid career: #{career_name}"
+          errors << t('ffg.invalid_career')
         end
       end
 
-      # Get specializations
-      specs_data = ffg[:specializations] || ffg["specializations"] || []
-      spec_names = specs_data.map { |s| s[:name] || s["name"] }.compact
+      # Handle specializations
+      specializations = ffg['specializations'] || []
+      spec_names = specializations.map { |s| s['name'] }.compact
       spec_names.each do |spec_name|
-        next unless Ffg.is_valid_specialization?(spec_name)
+        if !Ffg.is_valid_specialization?(spec_name)
+          Global.logger.warn "FFG: Invalid specialization: #{spec_name}"
+          errors << t('ffg.invalid_specialization')
+        end
       end
-      char.update(ffg_specializations: spec_names)
+      valid_specs = spec_names.select { |s| Ffg.is_valid_specialization?(s) }
+      char.update(ffg_specializations: valid_specs)
+      Global.logger.info "FFG: Set specializations to #{valid_specs.inspect}"
 
-      # Process characteristics
-      characteristics = ffg[:characteristics] || ffg["characteristics"] || []
+      # Handle characteristics
+      characteristics = ffg['characteristics'] || []
       max_char = Global.read_config("ffg", "max_cg_characteristic_rating") || 5
 
+      Global.logger.debug "FFG: Processing #{characteristics.length} characteristics"
       characteristics.each do |row|
-        name = row[:name] || row["name"]
-        rating = (row[:rating] || row["rating"] || 0).to_i
+        name = row['name']
+        rating = (row['rating'] || 0).to_i
 
         if rating > max_char
           errors << t('ffg.char_rating_too_high', :name => name, :max => max_char)
@@ -463,13 +487,14 @@ module AresMUSH
         Ffg.set_characteristic(char, name, rating)
       end
 
-      # Process skills
-      skills = ffg[:skills] || ffg["skills"] || []
+      # Handle skills
+      skills = ffg['skills'] || []
       max_skill = Global.read_config("ffg", "max_cg_skill_rating") || 2
 
+      Global.logger.debug "FFG: Processing #{skills.length} skills"
       skills.each do |row|
-        name = row[:name] || row["name"]
-        rating = (row[:rating] || row["rating"] || 0).to_i
+        name = row['name']
+        rating = (row['rating'] || 0).to_i
 
         if rating > max_skill
           errors << t('ffg.skill_rating_too_high', :name => name, :max => max_skill)
@@ -479,25 +504,28 @@ module AresMUSH
         Ffg.set_skill(char, name, rating)
       end
 
-      # Process talents
-      talents = ffg[:talents] || ffg["talents"] || []
+      # Handle talents
+      talents = ffg['talents'] || []
       
+      Global.logger.debug "FFG: Processing #{talents.length} talents"
       begin
+        # Clear existing talents
         char.ffg_talents.to_a.each { |t| t.delete }
 
         talents.each do |row|
-          name = row[:name] || row["name"]
+          name = row['name']
           next if name.blank?
 
           config = Ffg.find_talent_config(name)
           if !config
+            Global.logger.warn "FFG: Unknown talent: #{name}"
             errors << "Unknown talent: #{name}"
             next
           end
 
-          tier = (row[:tier] || row["tier"] || config['tier'] || 1).to_i
-          rank = (row[:rank] || row["rank"] || 1).to_i
-          spec = row[:specialization] || row["specialization"]
+          tier = (row['tier'] || config['tier'] || 1).to_i
+          rank = (row['rank'] || 1).to_i
+          spec = row['specialization']
           ranked = !!config['ranked']
 
           FfgTalent.create(
@@ -510,10 +538,12 @@ module AresMUSH
           )
         end
       rescue => e
-        Global.logger.warn "Error saving FFG talents for #{char.name}: #{e}"
+        Global.logger.error "FFG: Error saving talents for #{char.name}: #{e}"
+        Global.logger.error e.backtrace.join("\n")
         errors << "There was a problem saving your talents. Please try again or contact staff."
       end
 
+      Global.logger.info "FFG: save_abilities completed for #{char.name} with #{errors.length} errors"
       errors
     end
   end
