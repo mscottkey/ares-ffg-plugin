@@ -266,8 +266,7 @@ module AresMUSH
         {
           'name'           => t.name,
           'rank'           => t.ranked ? t.rating : nil,
-          'tier'           => t.tier,
-          'specialization' => t.specialization
+          'tier'           => t.tier
         }
       end
 
@@ -533,8 +532,7 @@ module AresMUSH
             name: name,
             tier: tier,
             ranked: ranked,
-            rating: ranked ? rank : 1,
-            specialization: spec
+            rating: ranked ? rank : 1
           )
         end
       rescue => e
