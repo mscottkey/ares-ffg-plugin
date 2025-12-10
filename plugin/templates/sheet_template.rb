@@ -68,14 +68,28 @@ module AresMUSH
 
       def to_h
         {
+          show_sheet: true,
           summary: summary,
-          characteristics: char.ffg_characteristics.map { |c| { name: c.name, rating: c.rating }},
-          skills: char.ffg_skills.map { |s| { name: s.name, rating: s.rating }},
-          talents: char.ffg_talents.map { |t| {
+          archetype: char.ffg_archetype,
+          career: char.ffg_career,
+          specializations: char.ffg_specializations || [],
+          characteristics: char.ffg_characteristics.sort_by { |c| c.name }.map { |c| {
+            name: c.name,
+            rating: c.rating
+          }},
+          skills: char.ffg_skills.sort_by { |s| s.name }.map { |s| {
+            name: s.name,
+            rating: s.rating
+          }},
+          talents: char.ffg_talents.sort_by { |t| [t.tier || 1, t.name] }.map { |t| {
             name: t.name,
             rank: t.ranked ? t.rating : nil,
             tier: t.tier,
             specialization: t.specialization
+          }},
+          force_powers: char.ffg_force_powers.sort_by { |p| p.name }.map { |p| {
+            name: p.name,
+            upgrades: p.upgrades || []
           }},
           wounds: {
             current: char.ffg_wounds || 0,
@@ -84,7 +98,10 @@ module AresMUSH
           strain: {
             current: char.ffg_strain || 0,
             max: char.ffg_strain_threshold || 0
-          }
+          },
+          xp: char.ffg_xp || 0,
+          force_rating: char.ffg_force_rating || 0,
+          story_points: char.ffg_story_points || 0
         }
       end
     end

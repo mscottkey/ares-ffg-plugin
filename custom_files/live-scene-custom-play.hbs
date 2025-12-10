@@ -1,13 +1,5 @@
 <li><a href="#" {{action (mut this.selectAddRoll) true}} class="dropdown-item">Ability Roll</a></li>
 <li><a href="#" {{action (mut this.selectAddOpposed) true}} class="dropdown-item">Opposed Roll</a></li>
-{{#if this.custom.can_heal }}
-  <li><a href="#" {{action (mut this.selectHeal) true}} class="dropdown-item">Heal Char</a></li>
-{{/if}}
-{{#if this.custom.wound_levels }}
-   <hr>
-   <li><a href="#" {{action (mut this.selectDamage) true}} class="dropdown-item">Set Damage</a></li>
-{{/if}}
-<FfgRoll @scene={{this.scene}} @destinationType="scene" @abilities={{this.custom.char_abilities}} @fatePoints={{this.custom.fate_points}} @charPoints={{this.custom.char_points}} @selectAddRoll={{this.selectAddRoll}} />
+
+<FfgRoll @scene={{this.scene}} @destinationType="scene" @abilities={{this.custom.char_abilities}} @selectAddRoll={{this.selectAddRoll}} />
 <FfgOpposedRoll @scene={{this.scene}} @destinationType="scene" @selectAddOpposed={{this.selectAddOpposed}} />
-<FfgHealChar @scene={{this.scene}} @destinationType="scene" @fatePoints={{this.custom.fate_points}} @charPoints={{this.custom.char_points}} @selectHeal={{this.selectHeal}} />
-<FfgSetDamage @scene={{this.scene}} @destinationType="scene" @woundLevels={{this.custom.wound_levels}} @selectDamage={{this.selectDamage}} />

@@ -1,0 +1,36 @@
+<BsModalSimple
+  @title="Add Ability Roll"
+  @show={{@selectAddRoll}}
+  @onSubmit={{this.addRoll}}
+  @onHide={{this.cancelAddRoll}}>
+
+  <div class="form-group">
+    <label for="rollSkill">Select Skill</label>
+    <select class="form-control" id="rollSkill" onchange={{action (mut this.selectedSkill) value="target.value"}}>
+      <option value="">-- Select a Skill --</option>
+      {{#each @abilities as |ability|}}
+        <option value={{ability.name}}>{{ability.name}} ({{ability.characteristic}})</option>
+      {{/each}}
+    </select>
+    <p class="help-block">Choose a skill to roll, or leave blank for a custom roll string.</p>
+  </div>
+
+  <div class="form-group">
+    <label for="rollModifiers">Custom Roll String or Modifiers</label>
+    <Input
+      id="rollModifiers"
+      class="form-control"
+      @value={{this.rollModifiers}}
+      @enter={{this.addRoll}}
+      placeholder="e.g., +2B+1D or 3A+2P+1D" />
+    <p class="help-block">
+      Add modifiers using dice codes: B=Boost, S=Setback, D=Difficulty, C=Challenge, A=Ability, P=Proficiency, F=Force<br>
+      Example: +2B+1D adds 2 Boost and 1 Difficulty to your skill roll
+    </p>
+  </div>
+
+  <div class="modal-footer">
+    <button class="btn btn-secondary" {{on "click" this.cancelAddRoll}}>Cancel</button>
+    <button class="btn btn-primary" {{on "click" this.addRoll}}>Roll</button>
+  </div>
+</BsModalSimple>

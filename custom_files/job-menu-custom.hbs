@@ -1,13 +1,3 @@
 <li><a href="#" {{action (mut this.addFfgAbilityRoll) true}} class="dropdown-item">Add Ability Roll</a></li>
 
-<FfgRoll @job={{this.job}} @destinationType="job" @abilities={{this.job.custom.char_abilities}} @fatePoints={{this.job.custom.fate_points}} @charPoints={{this.job.custom.char_points}} @selectAddRoll={{this.addFfgAbilityRoll}} />
-
-{{#if this.job.custom.wound_levels}}
-   <li><a href="#" {{action (mut this.setFfgDamage) true}} class="dropdown-item">Change Wound Level</a></li>
-   <FfgSetDamage @job={{this.job}} @destinationType="job" @woundLevels={{this.job.custom.wound_levels}} @selectDamage={{this.setD6Damage}} />
-{{/if}}
-
-{{#if this.job.custom.natural_heal}}
-   <li><a href="#" {{action (mut this.rollNaturalHeal) true}} class="dropdown-item">Roll Natural Heal</a></li>
-   <FfgNaturalHeal @job={{this.job}} @destinationType="job" @fatePoints={{this.job.custom.fate_points}} @charPoints={{this.job.custom.char_points}} @selectNaturalHeal={{this.rollNaturalHeal}} />
-{{/if}}
+<FfgRoll @job={{this.job}} @destinationType="job" @abilities={{this.job.custom.char_abilities}} @selectAddRoll={{this.addFfgAbilityRoll}} />

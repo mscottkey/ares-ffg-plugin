@@ -1,5 +1,180 @@
-<section class="sheet-section">
-  <h2>FFG Character Options</h2>
-  
-  <FfgCustomFields />
-</section>
+{{#if this.char.custom.ffg}}
+<div class="ffg-sheet">
+  {{! Character Summary }}
+  <div class="alert alert-info mb-3">
+    <div class="row">
+      <div class="col-md-6">
+        <strong>Archetype:</strong> {{this.char.custom.ffg.archetype}}<br>
+        <strong>Career:</strong> {{this.char.custom.ffg.career}}
+        {{#if this.char.custom.ffg.specializations}}
+          <br><strong>Specializations:</strong> {{join this.char.custom.ffg.specializations ", "}}
+        {{/if}}
+      </div>
+      <div class="col-md-6">
+        {{#if this.char.custom.ffg.force_rating}}
+          <strong>Force Rating:</strong> {{this.char.custom.ffg.force_rating}}<br>
+        {{/if}}
+        <strong>Story Points:</strong> {{this.char.custom.ffg.story_points}}<br>
+        <strong>XP Available:</strong> {{this.char.custom.ffg.xp}}
+      </div>
+    </div>
+  </div>
+
+  {{! Characteristics and Wounds/Strain }}
+  <div class="row">
+    <div class="col-md-8">
+      <div class="card mb-3">
+        <div class="card-heading">
+          <h5>Characteristics</h5>
+        </div>
+        <div class="card-body">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Characteristic</th>
+                <th class="text-center">Rating</th>
+              </tr>
+            </thead>
+            <tbody>
+              {{#each this.char.custom.ffg.characteristics as |char|}}
+                <tr>
+                  <td>{{char.name}}</td>
+                  <td class="text-center"><strong>{{char.rating}}</strong></td>
+                </tr>
+              {{/each}}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      {{! Wounds }}
+      <div class="card mb-3">
+        <div class="card-heading">
+          <h5>Wounds</h5>
+        </div>
+        <div class="card-body">
+          <div class="progress mb-2" style="height: 30px;">
+            <div class="progress-bar bg-danger" role="progressbar"
+                 style="width: {{this.woundPercentage}}%;"
+                 aria-valuenow="{{this.char.custom.ffg.wounds.current}}"
+                 aria-valuemin="0"
+                 aria-valuemax="{{this.char.custom.ffg.wounds.max}}">
+              {{this.char.custom.ffg.wounds.current}} / {{this.char.custom.ffg.wounds.max}}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {{! Strain }}
+      <div class="card mb-3">
+        <div class="card-heading">
+          <h5>Strain</h5>
+        </div>
+        <div class="card-body">
+          <div class="progress mb-2" style="height: 30px;">
+            <div class="progress-bar bg-warning" role="progressbar"
+                 style="width: {{this.strainPercentage}}%;"
+                 aria-valuenow="{{this.char.custom.ffg.strain.current}}"
+                 aria-valuemin="0"
+                 aria-valuemax="{{this.char.custom.ffg.strain.max}}">
+              {{this.char.custom.ffg.strain.current}} / {{this.char.custom.ffg.strain.max}}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {{! Skills }}
+  <div class="card mb-3">
+    <div class="card-heading">
+      <h5>Skills</h5>
+    </div>
+    <div class="card-body">
+      {{#if this.char.custom.ffg.skills}}
+        <div class="row">
+          {{#each this.char.custom.ffg.skills as |skill|}}
+            {{#if (gt skill.rating 0)}}
+              <div class="col-md-6">
+                <strong>{{skill.name}}:</strong> {{skill.rating}}
+              </div>
+            {{/if}}
+          {{/each}}
+        </div>
+      {{else}}
+        <p class="text-muted">No skills trained.</p>
+      {{/if}}
+    </div>
+  </div>
+
+  {{! Talents by Tier }}
+  <div class="card mb-3">
+    <div class="card-heading">
+      <h5>Talents</h5>
+    </div>
+    <div class="card-body">
+      {{#if this.talentsByTier}}
+        {{#each this.talentsByTier as |tierGroup|}}
+          <div class="mb-3">
+            <h6 class="text-primary">Tier {{tierGroup.tier}}</h6>
+            <div class="row">
+              {{#each tierGroup.talents as |talent|}}
+                <div class="col-md-6">
+                  <strong>{{talent.name}}</strong>{{#if talent.rank}} (Rank {{talent.rank}}){{/if}}
+                  {{#if talent.specialization}}
+                    <span class="text-muted"> - {{talent.specialization}}</span>
+                  {{/if}}
+                </div>
+              {{/each}}
+            </div>
+          </div>
+        {{/each}}
+      {{else}}
+        <p class="text-muted">No talents acquired.</p>
+      {{/if}}
+    </div>
+  </div>
+
+  {{! Force Powers }}
+  {{#if this.char.custom.ffg.force_powers}}
+    {{#if (gt this.char.custom.ffg.force_powers.length 0)}}
+      <div class="card mb-3">
+        <div class="card-heading">
+          <h5>Force Powers</h5>
+        </div>
+        <div class="card-body">
+          {{#each this.char.custom.ffg.force_powers as |power|}}
+            <div class="mb-3">
+              <h6 class="text-warning">{{power.name}}</h6>
+              {{#if power.upgrades}}
+                {{#if (gt power.upgrades.length 0)}}
+                  <div class="row">
+                    {{#each (this.groupUpgrades power.upgrades) as |upgrade|}}
+                      <div class="col-md-6">
+                        <strong>{{upgrade.name}}</strong>
+                        {{#if (gt upgrade.count 1)}}
+                          <span class="badge bg-info">x{{upgrade.count}}</span>
+                        {{/if}}
+                      </div>
+                    {{/each}}
+                  </div>
+                {{else}}
+                  <p class="text-muted small">Basic power only (no upgrades)</p>
+                {{/if}}
+              {{else}}
+                <p class="text-muted small">Basic power only (no upgrades)</p>
+              {{/if}}
+            </div>
+          {{/each}}
+        </div>
+      </div>
+    {{/if}}
+  {{/if}}
+</div>
+{{else}}
+  <div class="alert alert-warning">
+    <p>No FFG character data available.</p>
+  </div>
+{{/if}}

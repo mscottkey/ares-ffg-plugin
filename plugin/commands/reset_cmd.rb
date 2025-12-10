@@ -27,39 +27,8 @@ module AresMUSH
       end
       
       def handle
-        enactor.update(ffg_archetype: self.type)
-        enactor.update(ffg_career: self.career)
-        enactor.update(ffg_specializations: [])
-        enactor.delete_ffg_abilities
-        
-        config = Ffg.find_archetype_config(self.type)
-        (config['characteristics'] || {}).each do |name, rating|
-          Ffg.set_characteristic(enactor, name, rating)
-        end
-        (config['skills'] || []).each do |name|
-          Ffg.set_skill(enactor, name, 1)
-        end
-        (config['talents'] || []).each do |name|
-          talent = Ffg.find_talent(enactor, name)
-          if (!talent)
-            talent_config = Ffg.find_talent_config(name)
-            FfgTalent.create(name: name, character: enactor, rating: talent_config['ranked'] ? 1 : 0)
-          end
-        end
-        
-        bonus_xp = Global.read_config('ffg', 'bonus_xp')
-        career_xp = Global.read_config('ffg', 'career_skill_xp')
-        enactor.update(ffg_xp: config['xp'] + bonus_xp + career_xp)
-        
-        config = Ffg.find_career_config(self.career)
-        (config['skills'] || []).each do |name|
-          Ffg.set_skill(enactor, name, 1)
-        end
-        
-        Ffg.set_archetype_bonuses(enactor, self.type)
-        Ffg.set_career_bonuses(enactor, self.career)
-        Ffg.update_thresholds(enactor)
-        
+        # Use the shared reset logic
+        Ffg.perform_reset(enactor, self.type, self.career)
         client.emit_success t('ffg.archetype_set')
       end
     end

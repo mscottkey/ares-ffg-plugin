@@ -1,0 +1,260 @@
+---
+ffg:
+    force_powers:
+        -
+            name: Move
+            description: Move objects with the Force
+            base_xp_cost: 10
+            upgrades:
+                -
+                    name: Range
+                    description: Increase range by 1 range band
+                    xp_cost: 5
+                    max_rank: 4
+                -
+                    name: Magnitude
+                    description: Increase targets affected by 1
+                    xp_cost: 5
+                    max_rank: 4
+                -
+                    name: Strength
+                    description: Increase silhouette affected by 1
+                    xp_cost: 10
+                    max_rank: 4
+                -
+                    name: Control (Hurl)
+                    description: Hurl objects to deal damage
+                    xp_cost: 15
+                    max_rank: 1
+                    prereq: Strength
+                -
+                    name: Control (Pull/Push)
+                    description: Pull or push targets
+                    xp_cost: 10
+                    max_rank: 1
+        -
+            name: Sense
+            description: Sense the Force and emotions around you
+            base_xp_cost: 10
+            upgrades:
+                -
+                    name: Range
+                    description: Increase range by 1 range band
+                    xp_cost: 5
+                    max_rank: 3
+                -
+                    name: Magnitude
+                    description: Sense additional targets
+                    xp_cost: 5
+                    max_rank: 3
+                -
+                    name: Strength
+                    description: Upgrade difficulty once per check
+                    xp_cost: 10
+                    max_rank: 2
+                -
+                    name: Duration
+                    description: Ongoing effect for additional rounds
+                    xp_cost: 10
+                    max_rank: 3
+                -
+                    name: Control (Thoughts)
+                    description: Read surface thoughts
+                    xp_cost: 15
+                    max_rank: 1
+                -
+                    name: Control (Combat)
+                    description: Use in combat to upgrade attacks/defense
+                    xp_cost: 15
+                    max_rank: 1
+        -
+            name: Influence
+            description: Influence the thoughts and actions of others
+            base_xp_cost: 10
+            upgrades:
+                -
+                    name: Range
+                    description: Increase range by 1 range band
+                    xp_cost: 5
+                    max_rank: 3
+                -
+                    name: Magnitude
+                    description: Affect additional targets
+                    xp_cost: 10
+                    max_rank: 4
+                -
+                    name: Strength
+                    description: Increase power of influence
+                    xp_cost: 10
+                    max_rank: 2
+                -
+                    name: Duration
+                    description: Extend duration of effect
+                    xp_cost: 10
+                    max_rank: 3
+                -
+                    name: Control (Emotions)
+                    description: Inflict emotional states
+                    xp_cost: 10
+                    max_rank: 1
+                -
+                    name: Control (Mind Trick)
+                    description: Perform mind tricks
+                    xp_cost: 15
+                    max_rank: 1
+        -
+            name: Enhance
+            description: Enhance physical abilities
+            base_xp_cost: 10
+            upgrades:
+                -
+                    name: Range
+                    description: Affect targets at range
+                    xp_cost: 10
+                    max_rank: 1
+                -
+                    name: Duration
+                    description: Ongoing effect
+                    xp_cost: 10
+                    max_rank: 3
+                -
+                    name: Control (Athletics)
+                    description: Make Athletics checks as Force power checks
+                    xp_cost: 10
+                    max_rank: 1
+                -
+                    name: Control (Coordination)
+                    description: Make Coordination checks as Force power checks
+                    xp_cost: 10
+                    max_rank: 1
+                -
+                    name: Control (Brawl)
+                    description: Add Force dice to Brawl checks
+                    xp_cost: 10
+                    max_rank: 1
+                -
+                    name: Control (Resilience)
+                    description: Add Force dice to Resilience checks
+                    xp_cost: 10
+                    max_rank: 1
+        -
+            name: Foresee
+            description: Perceive shatterpoints and probabilities
+            base_xp_cost: 15
+            upgrades:
+                -
+                    name: Range
+                    description: Increase range of vision
+                    xp_cost: 5
+                    max_rank: 2
+                -
+                    name: Magnitude
+                    description: See additional possibilities
+                    xp_cost: 10
+                    max_rank: 2
+                -
+                    name: Strength
+                    description: See more detailed visions
+                    xp_cost: 10
+                    max_rank: 2
+                -
+                    name: Duration
+                    description: See further into future
+                    xp_cost: 15
+                    max_rank: 2
+                -
+                    name: Control (Initiative)
+                    description: Add Force dice to Initiative
+                    xp_cost: 10
+                    max_rank: 1
+                -
+                    name: Control (Upgrade Allies)
+                    description: Grant upgrades to allies
+                    xp_cost: 15
+                    max_rank: 1
+        -
+            name: Heal/Harm
+            description: Heal wounds or inflict harm through the Force
+            base_xp_cost: 20
+            upgrades:
+                -
+                    name: Range
+                    description: Affect targets at range
+                    xp_cost: 10
+                    max_rank: 3
+                -
+                    name: Magnitude
+                    description: Affect additional wounds/targets
+                    xp_cost: 10
+                    max_rank: 3
+                -
+                    name: Strength
+                    description: Heal critical injuries
+                    xp_cost: 15
+                    max_rank: 1
+                -
+                    name: Control (Resurrection)
+                    description: Revive recently deceased
+                    xp_cost: 25
+                    max_rank: 1
+                    prereq: Strength
+        -
+            name: Protect/Unleash
+            description: Create barriers or unleash destructive Force energy
+            base_xp_cost: 20
+            upgrades:
+                -
+                    name: Range
+                    description: Increase range
+                    xp_cost: 10
+                    max_rank: 2
+                -
+                    name: Magnitude
+                    description: Affect additional targets
+                    xp_cost: 10
+                    max_rank: 3
+                -
+                    name: Strength
+                    description: Increase defense or damage
+                    xp_cost: 10
+                    max_rank: 3
+                -
+                    name: Duration
+                    description: Maintain effect for rounds
+                    xp_cost: 15
+                    max_rank: 2
+                -
+                    name: Control (Mastery)
+                    description: Improved effects
+                    xp_cost: 20
+                    max_rank: 1
+        -
+            name: Battle Meditation
+            description: Coordinate allies through the Force
+            base_xp_cost: 25
+            upgrades:
+                -
+                    name: Range
+                    description: Increase range of effect
+                    xp_cost: 15
+                    max_rank: 3
+                -
+                    name: Magnitude
+                    description: Affect more allies
+                    xp_cost: 15
+                    max_rank: 4
+                -
+                    name: Strength
+                    description: Increase bonus granted
+                    xp_cost: 15
+                    max_rank: 2
+                -
+                    name: Duration
+                    description: Extend duration
+                    xp_cost: 15
+                    max_rank: 2
+                -
+                    name: Control (Leadership)
+                    description: Grant Leadership benefits
+                    xp_cost: 20
+                    max_rank: 1

@@ -69,12 +69,29 @@ module AresMUSH
     def self.find_talent(char, ability_name)
       name_downcase = ability_name.downcase
       char.ffg_talents.select { |a| a.name.downcase == name_downcase }.first
-    end    
-        
+    end
+
+    def self.find_force_power(char, power_name)
+      name_downcase = power_name.downcase
+      char.ffg_force_powers.select { |p| p.name.downcase == name_downcase }.first
+    end
+
     def self.find_talent_config(ability_name)
       return nil if !ability_name
       assets = Global.read_config('ffg', 'talents')
       assets.select { |a| a['name'].downcase == ability_name.downcase }.first
+    end
+
+    def self.find_force_power_config(power_name)
+      return nil if !power_name
+      powers = Global.read_config('ffg', 'force_powers')
+      powers.select { |p| p['name'].downcase == power_name.downcase }.first
+    end
+
+    def self.is_valid_force_power?(power_name)
+      return false if !power_name
+      power_config = find_force_power_config(power_name)
+      !power_config.nil?
     end
 
     def self.find_skill_config(name)
@@ -210,6 +227,24 @@ module AresMUSH
     # Web sheet / chargen data
     # ------------------------------------------------------------
 
+    # Builds a list of abilities (skills) for use in web rolling interfaces
+    # Returns array of hashes with skill name and related characteristic
+    def self.web_abilities(char)
+      return [] if !char
+
+      skills_config = Global.read_config("ffg", "skills") || []
+
+      skills_config.map do |skill_config|
+        skill_name = skill_config['name']
+        characteristic = skill_config['characteristic']
+
+        {
+          name: skill_name,
+          characteristic: characteristic
+        }
+      end.sort_by { |s| s[:name] }
+    end
+
     # Data for web sheets/chargen.
     # - In normal view: use SheetTemplate (live char data).
     # - In chargen: build a full list from config so the
@@ -270,6 +305,13 @@ module AresMUSH
         }
       end
 
+      force_powers = char.ffg_force_powers.map do |p|
+        {
+          'name'           => p.name,
+          'upgrades'       => p.upgrades || []
+        }
+      end
+
       # Get archetype info
       archetype_data = nil
       if char.ffg_archetype
@@ -323,6 +365,7 @@ module AresMUSH
         'characteristics' => characteristics,
         'skills'          => skills,
         'talents'         => talents,
+        'force_powers'    => force_powers,
         'wounds'          => {
           'current' => char.ffg_wounds || 0,
           'max'     => char.ffg_wound_threshold || 0
@@ -348,6 +391,7 @@ module AresMUSH
         'max_cg_characteristic_rating' => Global.read_config("ffg", "max_cg_characteristic_rating"),
         'max_cg_skill_rating'          => Global.read_config("ffg", "max_cg_skill_rating"),
         'talents'                      => Global.read_config('ffg', 'talents') || [],
+        'force_powers'                 => Global.read_config('ffg', 'force_powers') || [],
         'bonus_xp'                     => Global.read_config("ffg", "bonus_xp"),
         'career_skill_xp'              => Global.read_config("ffg", "career_skill_xp"),
         'use_force'                    => Global.read_config("ffg", "use_force"),
@@ -387,33 +431,26 @@ module AresMUSH
 
       # Debug logging
       Global.logger.debug "FFG save_abilities called for #{char.name}"
-      Global.logger.debug "FFG chargen_data keys: #{chargen_data.keys.inspect}"
       
-      custom = chargen_data['custom']
+      custom = chargen_data[:custom] || chargen_data['custom']
       if !custom
         Global.logger.warn "FFG: No custom data in chargen_data"
         return errors
       end
       
-      Global.logger.debug "FFG custom keys: #{custom.keys.inspect}"
-      
-      ffg = custom['ffg']
+      ffg = custom[:ffg] || custom['ffg']
       if !ffg
         Global.logger.warn "FFG: No ffg data in custom"
         return errors
       end
-      
-      Global.logger.debug "FFG ffg keys: #{ffg.keys.inspect}"
 
       # Handle archetype
-      archetype_data = ffg['archetype']
-      if archetype_data && archetype_data['name']
-        archetype_name = archetype_data['name']
-        Global.logger.info "FFG: Setting archetype to #{archetype_name}"
-        
-        if Ffg.is_valid_archetype?(archetype_name)
+      archetype_data = ffg[:archetype] || ffg['archetype']
+      if archetype_data
+        archetype_name = archetype_data[:name] || archetype_data['name']
+        if archetype_name && Ffg.is_valid_archetype?(archetype_name)
           if char.ffg_archetype != archetype_name
-            Global.logger.info "FFG: Archetype changed, resetting character"
+            Global.logger.info "FFG: Archetype changed to #{archetype_name}, resetting character"
             char.update(ffg_archetype: archetype_name)
             char.delete_ffg_abilities
             
@@ -424,62 +461,101 @@ module AresMUSH
               Ffg.set_characteristic(char, name, rating)
             end
             
+            # Set starting skills from archetype
+            (config['skills'] || []).each do |name|
+              Ffg.set_skill(char, name, 1)
+            end
+            
+            # Set starting talents from archetype
+            (config['talents'] || []).each do |name|
+              talent_config = Ffg.find_talent_config(name)
+              if talent_config
+                FfgTalent.create(
+                  name: name,
+                  character: char,
+                  rating: talent_config['ranked'] ? 1 : 1,
+                  tier: talent_config['tier'] || 1,
+                  ranked: talent_config['ranked']
+                )
+              end
+            end
+            
             # Set starting XP
             bonus_xp = Global.read_config('ffg', 'bonus_xp') || 0
             career_xp = Global.read_config('ffg', 'career_skill_xp') || 0
             char.update(ffg_xp: config['xp'] + bonus_xp + career_xp)
             
-            # Set bonuses
             Ffg.set_archetype_bonuses(char, archetype_name)
             Ffg.update_thresholds(char)
           end
-        else
+        elsif archetype_name
           Global.logger.warn "FFG: Invalid archetype: #{archetype_name}"
           errors << t('ffg.invalid_archetype')
         end
       end
 
       # Handle career
-      career_data = ffg['career']
-      if career_data && career_data['name']
-        career_name = career_data['name']
-        Global.logger.info "FFG: Setting career to #{career_name}"
-        
-        if Ffg.is_valid_career?(career_name)
+      career_data = ffg[:career] || ffg['career']
+      if career_data
+        career_name = career_data[:name] || career_data['name']
+        if career_name && Ffg.is_valid_career?(career_name)
           if char.ffg_career != career_name
+            Global.logger.info "FFG: Setting career to #{career_name}"
             char.update(ffg_career: career_name)
             Ffg.set_career_bonuses(char, career_name)
           end
-        else
+        elsif career_name
           Global.logger.warn "FFG: Invalid career: #{career_name}"
           errors << t('ffg.invalid_career')
         end
       end
 
       # Handle specializations
-      specializations = ffg['specializations'] || []
-      spec_names = specializations.map { |s| s['name'] }.compact
+      specializations = ffg[:specializations] || ffg['specializations'] || []
+      spec_names = specializations.map { |s| s[:name] || s['name'] }.compact
+      
+      # Validate all specs
       spec_names.each do |spec_name|
         if !Ffg.is_valid_specialization?(spec_name)
           Global.logger.warn "FFG: Invalid specialization: #{spec_name}"
           errors << t('ffg.invalid_specialization')
         end
       end
+      
+      # Only save valid specs
       valid_specs = spec_names.select { |s| Ffg.is_valid_specialization?(s) }
       char.update(ffg_specializations: valid_specs)
+      
+      # Set specialization bonuses for each spec
+      valid_specs.each do |spec|
+        Ffg.set_specialization_bonuses(char, spec)
+      end
+      
       Global.logger.info "FFG: Set specializations to #{valid_specs.inspect}"
 
       # Handle characteristics
-      characteristics = ffg['characteristics'] || []
+      characteristics = ffg[:characteristics] || ffg['characteristics'] || []
       max_char = Global.read_config("ffg", "max_cg_characteristic_rating") || 5
+      archetype_config = Ffg.find_archetype_config(char.ffg_archetype)
+      archetype_characs = (archetype_config && archetype_config['characteristics']) || {}
 
       Global.logger.debug "FFG: Processing #{characteristics.length} characteristics"
       characteristics.each do |row|
-        name = row['name']
-        rating = (row['rating'] || 0).to_i
+        name = row[:name] || row['name']
+        rating = (row[:rating] || row['rating'] || 0).to_i
+        
+        next if name.nil?
 
+        # Check against max rating
         if rating > max_char
-          errors << t('ffg.char_rating_too_high', :name => name, :max => max_char)
+          errors << t('ffg.char_rating_too_high', name: name, max: max_char)
+          next
+        end
+        
+        # Check against archetype minimum
+        min_rating = archetype_characs[name] || 0
+        if rating < min_rating
+          errors << t('ffg.cant_lower_below_archetype_min')
           next
         end
 
@@ -487,16 +563,18 @@ module AresMUSH
       end
 
       # Handle skills
-      skills = ffg['skills'] || []
+      skills = ffg[:skills] || ffg['skills'] || []
       max_skill = Global.read_config("ffg", "max_cg_skill_rating") || 2
 
       Global.logger.debug "FFG: Processing #{skills.length} skills"
       skills.each do |row|
-        name = row['name']
-        rating = (row['rating'] || 0).to_i
+        name = row[:name] || row['name']
+        rating = (row[:rating] || row['rating'] || 0).to_i
+        
+        next if name.nil?
 
         if rating > max_skill
-          errors << t('ffg.skill_rating_too_high', :name => name, :max => max_skill)
+          errors << t('ffg.skill_rating_too_high', name: name, max: max_skill)
           next
         end
 
@@ -504,15 +582,26 @@ module AresMUSH
       end
 
       # Handle talents
-      talents = ffg['talents'] || []
+      talents = ffg[:talents] || ffg['talents'] || []
       
       Global.logger.debug "FFG: Processing #{talents.length} talents"
       begin
-        # Clear existing talents
-        char.ffg_talents.to_a.each { |t| t.delete }
+        # Clear existing talents that aren't from archetype
+        archetype_talents = (archetype_config && archetype_config['talents']) || []
+        char.ffg_talents.to_a.each do |t|
+          # Keep archetype talents at rating 1, remove others
+          if archetype_talents.include?(t.name)
+            if t.rating > 1
+              t.update(rating: 1)
+            end
+          else
+            t.delete
+          end
+        end
 
+        # Add/update talents from chargen
         talents.each do |row|
-          name = row['name']
+          name = row[:name] || row['name']
           next if name.blank?
 
           config = Ffg.find_talent_config(name)
@@ -522,18 +611,33 @@ module AresMUSH
             next
           end
 
-          tier = (row['tier'] || config['tier'] || 1).to_i
-          rank = (row['rank'] || 1).to_i
-          spec = row['specialization']
+          tier = (row[:tier] || row['tier'] || config['tier'] || 1).to_i
+          rank = (row[:rank] || row['rank'] || 1).to_i
           ranked = !!config['ranked']
+          
+          # Check if this is an archetype talent
+          is_archetype_talent = archetype_talents.include?(name)
 
-          FfgTalent.create(
-            character: char,
-            name: name,
-            tier: tier,
-            ranked: ranked,
-            rating: ranked ? rank : 1
-          )
+          # Find existing talent
+          existing = char.ffg_talents.select { |t| t.name == name }.first
+          
+          if existing
+            # Update existing talent
+            if ranked
+              # For archetype talents, add to the base rating of 1
+              new_rating = is_archetype_talent ? (1 + rank - 1) : rank
+              existing.update(rating: new_rating)
+            end
+          else
+            # Create new talent
+            FfgTalent.create(
+              character: char,
+              name: name,
+              tier: tier,
+              ranked: ranked,
+              rating: ranked ? rank : 1
+            )
+          end
         end
       rescue => e
         Global.logger.error "FFG: Error saving talents for #{char.name}: #{e}"
@@ -541,8 +645,105 @@ module AresMUSH
         errors << "There was a problem saving your talents. Please try again or contact staff."
       end
 
+      # Handle Force powers (only for Force users)
+      if Ffg.is_force_user?(char)
+        force_powers = ffg[:force_powers] || ffg['force_powers'] || []
+
+        Global.logger.debug "FFG: Processing #{force_powers.length} force powers"
+        begin
+          # Clear existing force powers
+          char.ffg_force_powers.to_a.each { |p| p.delete }
+
+          # Add force powers from chargen
+          force_powers.each do |row|
+            name = row[:name] || row['name']
+            next if name.blank?
+
+            config = Ffg.find_force_power_config(name)
+            if !config
+              Global.logger.warn "FFG: Unknown force power: #{name}"
+              errors << "Unknown force power: #{name}"
+              next
+            end
+
+            upgrades = row[:upgrades] || row['upgrades'] || []
+
+            FfgForcePower.create(
+              character: char,
+              name: name,
+              upgrades: upgrades
+            )
+          end
+        rescue => e
+          Global.logger.error "FFG: Error saving force powers for #{char.name}: #{e}"
+          Global.logger.error e.backtrace.join("\n")
+          errors << "There was a problem saving your force powers. Please try again or contact staff."
+        end
+      end
+
+      # Update thresholds based on final characteristics
+      if !char.is_approved?
+        Ffg.update_thresholds(char)
+      end
+
       Global.logger.info "FFG: save_abilities completed for #{char.name} with #{errors.length} errors"
       errors
+    end
+
+    # Extract the reset logic so both the command and web save can use it
+    def self.perform_reset(char, archetype, career)
+      Global.logger.info "FFG: Resetting #{char.name} to #{archetype}/#{career}"
+      
+      char.update(ffg_archetype: archetype)
+      char.update(ffg_career: career)
+      char.update(ffg_specializations: [])
+      char.delete_ffg_abilities
+      
+      # Set archetype baseline
+      config = Ffg.find_archetype_config(archetype)
+      
+      # Starting characteristics
+      (config['characteristics'] || {}).each do |name, rating|
+        Ffg.set_characteristic(char, name, rating)
+      end
+      
+      # Starting skills
+      (config['skills'] || []).each do |name|
+        Ffg.set_skill(char, name, 1)
+      end
+      
+      # Starting talents
+      (config['talents'] || []).each do |name|
+        talent_config = Ffg.find_talent_config(name)
+        if talent_config
+          FfgTalent.create(
+            name: name, 
+            character: char, 
+            rating: 1,
+            tier: talent_config['tier'] || 1,
+            ranked: talent_config['ranked']
+          )
+        end
+      end
+      
+      # Calculate starting XP
+      bonus_xp = Global.read_config('ffg', 'bonus_xp') || 0
+      career_xp = Global.read_config('ffg', 'career_skill_xp') || 0
+      char.update(ffg_xp: config['xp'] + bonus_xp + career_xp)
+      
+      # Set career baseline skills (if any)
+      career_config = Ffg.find_career_config(career)
+      # Note: Most careers don't give free skills, but if yours does:
+      # (career_config['skills'] || []).each do |name|
+      #   Ffg.set_skill(char, name, 1)
+      # end
+      
+      # Call customization hooks
+      Ffg.set_archetype_bonuses(char, archetype)
+      Ffg.set_career_bonuses(char, career)
+      Ffg.update_thresholds(char)
+      
+      Global.logger.info "FFG: Reset complete for #{char.name}"
     end
   end
 end

@@ -43,6 +43,14 @@ module AresMUSH
         else
           return TalentsCmd
         end
+      when "power"
+        if (cmd.switch_is?("add"))
+          return ForcePowerAddCmd
+        elsif (cmd.switch_is?("upgrade"))
+          return ForcePowerUpgradeCmd
+        else
+          return ForcePowersCmd
+        end
       when "force", "wounds", "strain", "woundthresh", "strainthresh"
         return StatSetCmd
       when "career"
@@ -79,6 +87,8 @@ module AresMUSH
       case request.cmd
       when "getChargenInfo"
         return GetChargenInfoRequestHandler
+      when "resetAbilities"
+        return ResetAbilitiesRequestHandler
       end
       nil
     end

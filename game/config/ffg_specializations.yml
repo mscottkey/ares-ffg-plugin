@@ -1,3 +1,17 @@
 ---
 ffg:
-    specializations: []
+    specializations:
+        -
+            name: Force Sensitive Exile
+            career: null  # Universal specialization
+            force_user: true
+            career_skills:
+                - Discipline
+                - Perception
+        -
+            name: Force Sensitive Emergent
+            career: null  # Universal specialization
+            force_user: true
+            career_skills:
+                - Discipline
+                - Vigilance

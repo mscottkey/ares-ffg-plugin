@@ -1,0 +1,11 @@
+%lh
+<%= name %>
+%lf
+%xh<%= t('ffg.description_title') %>:%xn <%= description %>
+%xh<%= t('ffg.base_cost_title') %>:%xn <%= base_cost %> XP
+
+%xh<%= t('ffg.upgrades_title') %>:%xn
+<% upgrades.each do |u| -%>
+<%= u %>
+<% end -%>
+%lf

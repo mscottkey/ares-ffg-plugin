@@ -3,6 +3,7 @@ module AresMUSH
     collection :ffg_skills, "AresMUSH::FfgSkill"
     collection :ffg_characteristics, "AresMUSH::FfgCharacteristic"
     collection :ffg_talents, "AresMUSH::FfgTalent"
+    collection :ffg_force_powers, "AresMUSH::FfgForcePower"
     
     attribute :ffg_xp, :type => DataType::Integer
     attribute :ffg_story_points, :type => DataType::Integer
@@ -18,7 +19,7 @@ module AresMUSH
     before_delete :delete_ffg_abilities
     
     def delete_ffg_abilities
-      [ self.ffg_skills, self.ffg_characteristics, self.ffg_talents ].each do |list|
+      [ self.ffg_skills, self.ffg_characteristics, self.ffg_talents, self.ffg_force_powers ].each do |list|
         list.each do |a|
           a.delete
         end
@@ -46,18 +47,27 @@ module AresMUSH
   
   class FfgTalent < Ohm::Model
     include ObjectModel
-    
+
     attribute :name
     attribute :rating, :type => DataType::Integer
     attribute :ranked, :type => DataType::Boolean
     attribute :tier, :type => DataType::Integer
     reference :character, "AresMUSH::Character"
     index :name
-    
+
     def rating_plus_tier
       self.rating > 1 ? self.tier + self.rating - 1 : self.tier
     end
   end
-  
-  
+
+  class FfgForcePower < Ohm::Model
+    include ObjectModel
+
+    attribute :name
+    attribute :upgrades, :type => DataType::Array, :default => []
+    reference :character, "AresMUSH::Character"
+    index :name
+  end
+
+
 end

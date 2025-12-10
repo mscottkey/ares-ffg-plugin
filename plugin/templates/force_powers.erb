@@ -1,0 +1,9 @@
+%lh
+<%= t('ffg.force_powers_title') %>
+%lf
+%xh<%= left(t('ffg.name_title'), 25) %>  <%= left(t('ffg.base_cost_title'), 12) %>  <%= t('ffg.description_title') %>%xn
+<% @powers.each do |power| -%>
+<%= left(name(power), 25) %>  <%= left(base_cost(power), 12) %>  <%= description(power) %>
+<% end -%>
+%lf
+%xhFor details:%xn force/powers <power name>

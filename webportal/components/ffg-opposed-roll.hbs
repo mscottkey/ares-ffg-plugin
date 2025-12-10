@@ -1,0 +1,55 @@
+<BsModalSimple
+  @title="Add Opposed Roll"
+  @show={{@selectAddOpposed}}
+  @onSubmit={{this.addOpposedRoll}}
+  @onHide={{this.cancelAddOpposed}}>
+
+  <h5>Your Roll</h5>
+  <div class="form-group">
+    <label for="yourSkill">Your Skill</label>
+    <Input
+      id="yourSkill"
+      class="form-control"
+      @value={{this.yourSkill}}
+      placeholder="Skill name or roll string (e.g., Athletics or 3A+2P)" />
+  </div>
+
+  <div class="form-group">
+    <label for="yourModifiers">Your Modifiers (Optional)</label>
+    <Input
+      id="yourModifiers"
+      class="form-control"
+      @value={{this.yourModifiers}}
+      placeholder="e.g., +2B+1D" />
+  </div>
+
+  <h5 class="mt-3">Opponent</h5>
+  <div class="form-group">
+    <label for="opponentName">Opponent Name</label>
+    <Input
+      id="opponentName"
+      class="form-control"
+      @value={{this.opponentName}}
+      placeholder="Character name" />
+  </div>
+
+  <div class="form-group">
+    <label for="opponentSkill">Opponent Skill</label>
+    <Input
+      id="opponentSkill"
+      class="form-control"
+      @value={{this.opponentSkill}}
+      @enter={{this.addOpposedRoll}}
+      placeholder="Skill name" />
+  </div>
+
+  <p class="help-block">
+    Format: Your skill vs Opponent/Their skill<br>
+    Example: Athletics vs Bob/Athletics
+  </p>
+
+  <div class="modal-footer">
+    <button class="btn btn-secondary" {{on "click" this.cancelAddOpposed}}>Cancel</button>
+    <button class="btn btn-primary" {{on "click" this.addOpposedRoll}}>Roll</button>
+  </div>
+</BsModalSimple>
