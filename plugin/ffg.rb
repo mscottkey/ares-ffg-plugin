@@ -1,5 +1,9 @@
 $:.unshift File.dirname(__FILE__)
 
+# Load web request handlers
+require 'web/ffg_web_hooks'
+require 'web/reset_char_request_handler'
+
 module AresMUSH
      module Ffg
 
