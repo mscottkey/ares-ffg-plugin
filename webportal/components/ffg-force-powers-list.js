@@ -6,11 +6,14 @@ export default class FfgForcePowersListComponent extends Component {
   @tracked showingUpgradesFor = null;
 
   get selectedPowers() {
-    const powers = this.args.char.force_powers || [];
-    const allPowers = this.args.cgInfo.force_powers || [];
+    const powers = this.args.char?.force_powers || [];
+    const allPowers = this.args.cgInfo?.force_powers || [];
 
     return powers.map(p => {
-      const config = allPowers.find(cp => cp.name === p.name);
+      // Skip if power object is invalid
+      if (!p || !p.name) return null;
+
+      const config = allPowers.find(cp => cp && cp.name === p.name);
       if (!config) return null;
 
       // Group upgrades with counts
@@ -35,10 +38,12 @@ export default class FfgForcePowersListComponent extends Component {
   }
 
   get availablePowers() {
-    const allPowers = this.args.cgInfo.force_powers || [];
-    const selected = (this.args.char.force_powers || []).map(p => p.name);
+    const allPowers = this.args.cgInfo?.force_powers || [];
+    const selected = (this.args.char?.force_powers || [])
+      .filter(p => p && p.name)
+      .map(p => p.name);
 
-    return allPowers.filter(p => !selected.includes(p.name));
+    return allPowers.filter(p => p && p.name && !selected.includes(p.name));
   }
 
   get selectedPowersCount() {
@@ -46,7 +51,7 @@ export default class FfgForcePowersListComponent extends Component {
   }
 
   get totalPowers() {
-    return (this.args.cgInfo.force_powers || []).length;
+    return (this.args.cgInfo?.force_powers || []).length;
   }
 
   get totalXPCost() {
@@ -75,7 +80,7 @@ export default class FfgForcePowersListComponent extends Component {
     const power = this.selectedPowers.find(p => p.name === this.showingUpgradesFor);
     if (!power) return [];
 
-    const charPower = (this.args.char.force_powers || []).find(p => p.name === this.showingUpgradesFor);
+    const charPower = (this.args.char?.force_powers || []).find(p => p && p.name === this.showingUpgradesFor);
     const currentUpgrades = charPower ? (charPower.upgrades || []) : [];
 
     // Count current upgrades
@@ -96,7 +101,7 @@ export default class FfgForcePowersListComponent extends Component {
 
   @action
   addPower(powerName) {
-    const powers = [...(this.args.char.force_powers || [])];
+    const powers = [...(this.args.char?.force_powers || [])];
     powers.push({ name: powerName, upgrades: [] });
 
     this.updatePowers(powers);
@@ -104,7 +109,7 @@ export default class FfgForcePowersListComponent extends Component {
 
   @action
   removePower(powerName) {
-    const powers = (this.args.char.force_powers || []).filter(p => p.name !== powerName);
+    const powers = (this.args.char?.force_powers || []).filter(p => p && p.name !== powerName);
     this.updatePowers(powers);
   }
 
@@ -120,8 +125,8 @@ export default class FfgForcePowersListComponent extends Component {
 
   @action
   increaseUpgrade(upgradeName) {
-    const powers = [...(this.args.char.force_powers || [])];
-    const power = powers.find(p => p.name === this.showingUpgradesFor);
+    const powers = [...(this.args.char?.force_powers || [])];
+    const power = powers.find(p => p && p.name === this.showingUpgradesFor);
 
     if (power) {
       power.upgrades = [...(power.upgrades || []), upgradeName];
@@ -131,8 +136,8 @@ export default class FfgForcePowersListComponent extends Component {
 
   @action
   decreaseUpgrade(upgradeName) {
-    const powers = [...(this.args.char.force_powers || [])];
-    const power = powers.find(p => p.name === this.showingUpgradesFor);
+    const powers = [...(this.args.char?.force_powers || [])];
+    const power = powers.find(p => p && p.name === this.showingUpgradesFor);
 
     if (power) {
       const index = power.upgrades.indexOf(upgradeName);
@@ -146,7 +151,9 @@ export default class FfgForcePowersListComponent extends Component {
 
   updatePowers(powers) {
     // Update the character's force_powers array
-    this.args.char.force_powers = powers;
+    if (this.args.char) {
+      this.args.char.force_powers = powers;
+    }
 
     // Notify parent of change
     if (this.args.updated) {
