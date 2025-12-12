@@ -52,6 +52,7 @@ module AresMUSH
     attribute :rating, :type => DataType::Integer
     attribute :ranked, :type => DataType::Boolean
     attribute :tier, :type => DataType::Integer
+    attribute :specialization
     reference :character, "AresMUSH::Character"
     index :name
 
