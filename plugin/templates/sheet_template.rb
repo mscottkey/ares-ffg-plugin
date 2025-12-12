@@ -73,21 +73,21 @@ module AresMUSH
           archetype: char.ffg_archetype,
           career: char.ffg_career,
           specializations: char.ffg_specializations || [],
-          characteristics: char.ffg_characteristics.sort_by { |c| c.name }.map { |c| {
+          characteristics: char.ffg_characteristics.to_a.sort_by { |c| c.name }.map { |c| {
             name: c.name,
             rating: c.rating
           }},
-          skills: char.ffg_skills.sort_by { |s| s.name }.map { |s| {
+          skills: char.ffg_skills.to_a.sort_by { |s| s.name }.map { |s| {
             name: s.name,
             rating: s.rating
           }},
-          talents: char.ffg_talents.sort_by { |t| [t.tier || 1, t.name] }.map { |t| {
+          talents: char.ffg_talents.to_a.sort_by { |t| [t.tier || 1, t.name] }.map { |t| {
             name: t.name,
             rank: t.ranked ? t.rating : nil,
             tier: t.tier,
             specialization: t.specialization
           }},
-          force_powers: char.ffg_force_powers.sort_by { |p| p.name }.map { |p| {
+          force_powers: char.ffg_force_powers.to_a.sort_by { |p| p.name }.map { |p| {
             name: p.name,
             upgrades: p.upgrades || []
           }},
