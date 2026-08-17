@@ -56,6 +56,10 @@ export default Component.extend({
           tier: t.tier,
           specialization: t.specialization
         })),
+        force_powers: (ffg.force_powers || []).map(p => ({
+          name: p.name,
+          upgrades: p.upgrades || []
+        })),
         starting_xp: ffg.starting_xp,
         wounds: ffg.wounds,
         strain: ffg.strain

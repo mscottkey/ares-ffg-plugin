@@ -37,6 +37,7 @@ en:
       talent_added: "You add that talent."
       talent_force_restricted: "Only force users can select force talents."
       missing_talent_specialization: "That talent is only available to characters with one of the following specializations: %{specs}."
+      missing_talent_prereq: "That talent requires the %{prereq} talent first."
       
       invalid_ability_name: "That is not a valid ability name."
       ability_set: "Ability set."

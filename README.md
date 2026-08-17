@@ -39,7 +39,13 @@ This plugin is a simplified implementation of the [Fantasy Flight Games RPG](htt
 
 ## Web Portal
 
-This plugin has no web portal component.  Nor is it ever likely to, given its complexity.
+This plugin has a web portal component covering character creation, the character sheet, and rolling.
+
+* **Chargen** - An Abilities tab that walks through archetype, career, specializations, characteristics, skills, talents and force powers, with a running XP tally.  Talent picks are gated on the talent pyramid and force power upgrades on their prerequisites.
+* **Sheet** - A Sheet tab on the character profile showing characteristics, skills, talents by tier, force powers and wound/strain bars.
+* **Rolling** - Ability Roll and Opposed Roll options in the live scene menu and the jobs menu.
+
+The portal files live in `webportal/` and the Ares integration hooks in `custom_files/`.  See the installation instructions below for where each one goes.
 
 ## Installation
 
