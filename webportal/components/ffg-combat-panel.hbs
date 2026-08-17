@@ -1,0 +1,98 @@
+<BsModalSimple
+  @title="Combat"
+  @show={{@selectCombat}}
+  @onSubmit={{this.attack}}
+  @onHide={{this.closePanel}}>
+
+  {{#if this.loading}}
+    <p>Loading combat...</p>
+  {{else if this.hasCombat}}
+
+    <div class="alert alert-info mb-3">
+      {{#if this.combat.started}}
+        <strong>Round {{this.combat.round}}</strong>
+        {{#if this.combat.active}} &mdash; it's <strong>{{this.combat.active}}</strong>'s turn{{/if}}
+      {{else}}
+        Initiative hasn't been rolled yet.
+      {{/if}}
+      {{#if this.isSuggestMode}}
+        <br><small>Automation is set to <strong>suggest</strong> &mdash; damage is worked out but not written to sheets.</small>
+      {{/if}}
+    </div>
+
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Combatant</th>
+          <th>Tier</th>
+          <th>Wounds</th>
+          <th>Strain</th>
+          <th class="text-center">Soak</th>
+          <th>Range</th>
+          <th>Weapon</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each this.combatants as |c|}}
+          <tr class={{if c.incapacitated "table-danger"}}>
+            <td>
+              {{#if c.is_active}}<strong>&rsaquo; {{c.name}}</strong>{{else}}{{c.name}}{{/if}}
+              {{#if c.is_group}} <span class="badge bg-secondary">x{{c.minion_count}}</span>{{/if}}
+              {{#if c.incapacitated}} <span class="badge bg-danger">down</span>{{/if}}
+              {{#if c.has_crits}} <span class="badge bg-warning">{{c.crit_count}} crit</span>{{/if}}
+            </td>
+            <td>{{c.tier}}</td>
+            <td>{{c.wounds.current}}/{{c.wounds.max}}</td>
+            <td>{{#if c.strain.tracked}}{{c.strain.current}}/{{c.strain.max}}{{else}}&mdash;{{/if}}</td>
+            <td class="text-center">{{c.soak}}</td>
+            <td>{{c.range_band}}</td>
+            <td>{{c.weapon}}</td>
+          </tr>
+        {{/each}}
+      </tbody>
+    </table>
+
+    {{#if this.combat.viewer_in_combat}}
+      <div class="form-group">
+        <label for="attackTarget">Attack</label>
+        <select class="form-control" id="attackTarget" onchange={{this.selectTarget}}>
+          <option value="">-- Select a Target --</option>
+          {{#each this.targets as |c|}}
+            <option value={{c.name}}>{{c.name}} ({{c.wounds.current}}/{{c.wounds.max}} wounds, soak {{c.soak}})</option>
+          {{/each}}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="attackWeapon">Weapon</label>
+        <select class="form-control" id="attackWeapon" onchange={{this.selectWeapon}}>
+          <option value="">-- Use My Equipped Weapon --</option>
+          {{#each this.weapons as |w|}}
+            <option value={{w}}>{{w}}</option>
+          {{/each}}
+        </select>
+      </div>
+    {{else}}
+      <p class="text-muted">You aren't in this combat. Join it in game with <code>combat/join</code>.</p>
+    {{/if}}
+
+    {{#if this.lastResult}}
+      <div class="alert {{if this.lastResult.hit 'alert-warning' 'alert-secondary'}}">
+        {{this.lastResult.message}}
+        {{#if this.lastResult.crit_available}}
+          <br><strong>Critical available</strong> for {{this.lastResult.crit_cost}} advantage:
+          <code>crit {{this.lastResult.roll_id}}={{this.targetName}}</code>
+        {{/if}}
+      </div>
+    {{/if}}
+
+  {{else}}
+    <p>There's no combat going on in your room. Start one in game with <code>combat/start</code>.</p>
+  {{/if}}
+
+  <div class="modal-footer">
+    <button class="btn btn-secondary" {{on "click" this.loadCombat}}>Refresh</button>
+    <button class="btn btn-secondary" {{on "click" this.closePanel}}>Close</button>
+    <button class="btn btn-primary" {{on "click" this.attack}} disabled={{not this.combat.viewer_in_combat}}>Attack</button>
+  </div>
+</BsModalSimple>

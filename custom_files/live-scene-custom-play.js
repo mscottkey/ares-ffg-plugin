@@ -4,5 +4,6 @@ export default Component.extend({
   tagName: '',
   selectAddRoll: false,
   selectAddOpposed: false,
-  selectAddSpend: false
+  selectAddSpend: false,
+  selectCombat: false
 });

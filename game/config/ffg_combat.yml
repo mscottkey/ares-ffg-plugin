@@ -1,0 +1,177 @@
+---
+ffg:
+    # Skills rolled for initiative.  Combatants roll the first one they have a rating in,
+    # falling back to the last entry.
+    initiative_skills:
+        - Vigilance
+        - Cool
+
+    # Range bands, closest first.  Attacking outside a weapon's range adds difficulty for
+    # each band of difference.
+    range_bands:
+        - Engaged
+        - Short
+        - Medium
+        - Long
+        - Extreme
+
+    # Difficulty dice by range band, per the standard difficulty-by-range table.
+    range_difficulty:
+        Engaged: 1
+        Short: 1
+        Medium: 2
+        Long: 3
+        Extreme: 4
+
+    # Adversary tiers.  Minions share one wound pool across the group; only nemeses track
+    # strain the way PCs do.
+    adversary_tiers:
+        minion:
+            name: Minion
+            shared_wounds: true
+            uses_strain: false
+        rival:
+            name: Rival
+            shared_wounds: false
+            uses_strain: false
+        nemesis:
+            name: Nemesis
+            shared_wounds: false
+            uses_strain: true
+
+    # Weapons.  'characteristic' adds that characteristic's rating to damage, the way
+    # Brawn does for melee and brawl weapons.  'crit' is the advantage it costs to trigger
+    # a critical hit.
+    weapons:
+        -
+            name: Unarmed
+            skill: Brawl
+            damage: 0
+            characteristic: Brawn
+            crit: 5
+            range: Engaged
+        -
+            name: Knife
+            skill: Melee
+            damage: 1
+            characteristic: Brawn
+            crit: 3
+            range: Engaged
+        -
+            name: Sword
+            skill: Melee
+            damage: 3
+            characteristic: Brawn
+            crit: 2
+            range: Engaged
+        -
+            name: Pistol
+            skill: Ranged
+            damage: 6
+            crit: 3
+            range: Medium
+        -
+            name: Rifle
+            skill: Ranged
+            damage: 9
+            crit: 3
+            range: Long
+        -
+            name: Bow
+            skill: Ranged
+            damage: 7
+            crit: 3
+            range: Medium
+
+    armor:
+        -
+            name: None
+            soak: 0
+            defense: 0
+        -
+            name: Padded
+            soak: 1
+            defense: 0
+        -
+            name: Heavy
+            soak: 2
+            defense: 1
+
+    # Critical injuries.  A critical rolls d100 plus 10 for every critical the target is
+    # already carrying, then looks the total up here.
+    critical_injuries:
+        -
+            min: 1
+            max: 20
+            name: "Minor Nick"
+            effect: "The target suffers 1 strain."
+        -
+            min: 21
+            max: 30
+            name: "Slowed Down"
+            effect: "The target can only act once on their next turn."
+        -
+            min: 31
+            max: 40
+            name: "Sudden Jolt"
+            effect: "The target drops whatever they're holding."
+        -
+            min: 41
+            max: 50
+            name: "Distracted"
+            effect: "The target cannot perform a free maneuver next turn."
+        -
+            min: 51
+            max: 60
+            name: "Off Balance"
+            effect: "Add a setback die to the target's next check."
+        -
+            min: 61
+            max: 70
+            name: "Discouraging Wound"
+            effect: "The target loses one rank of a characteristic until healed."
+        -
+            min: 71
+            max: 80
+            name: "Stunned"
+            effect: "The target is staggered until the end of their next turn."
+        -
+            min: 81
+            max: 90
+            name: "Stinger"
+            effect: "Increase the difficulty of the target's next check by one."
+        -
+            min: 91
+            max: 100
+            name: "Bowled Over"
+            effect: "The target is knocked prone and suffers 1 strain."
+        -
+            min: 101
+            max: 110
+            name: "Head Ringer"
+            effect: "Upgrade the difficulty of all the target's Intellect and Cunning checks."
+        -
+            min: 111
+            max: 120
+            name: "Fearsome Wound"
+            effect: "The target suffers a permanent scar and 1 strain per encounter."
+        -
+            min: 121
+            max: 130
+            name: "Agonizing Wound"
+            effect: "Upgrade the difficulty of all the target's checks until healed."
+        -
+            min: 131
+            max: 140
+            name: "Slightly Dazed"
+            effect: "The target is disoriented for the rest of the encounter."
+        -
+            min: 141
+            max: 150
+            name: "Horrific Injury"
+            effect: "The target's wounds worsen; they suffer 3 additional wounds."
+        -
+            min: 151
+            max: 999
+            name: "Dead"
+            effect: "The target is killed outright."

@@ -103,8 +103,13 @@ module AresMUSH
     attribute :created_at, :type => DataType::Integer
     attribute :scene_id
 
+    # NPC rolls have no character to prune them against, so they're tagged with the combat
+    # that made them and cleaned up when it ends.
+    attribute :combat_id
+
     reference :character, "AresMUSH::Character"
     index :scene_id
+    index :combat_id
 
     def available_advantage
       (self.net_advantage || 0) - (self.spent_advantage || 0)
@@ -129,6 +134,94 @@ module AresMUSH
 
     def print_dice
       (self.dice || []).join(" ")
+    end
+  end
+
+  class FfgCombat < Ohm::Model
+    include ObjectModel
+
+    attribute :round, :type => DataType::Integer, :default => 0
+    attribute :turn_index, :type => DataType::Integer, :default => 0
+    attribute :scene_id
+    attribute :room_id
+
+    collection :combatants, "AresMUSH::FfgCombatant", :combat
+
+    index :scene_id
+    index :room_id
+
+    # Combatants in initiative order.  Ties break on advantage, then on name so the order
+    # is stable between turns.
+    def initiative_order
+      self.combatants.to_a.sort_by do |c|
+        [ -(c.initiative || 0), -(c.initiative_advantage || 0), c.display_name.to_s ]
+      end
+    end
+
+    def active_combatant
+      order = self.initiative_order
+      return nil if order.empty?
+      order[(self.turn_index || 0) % order.count]
+    end
+
+    def delete_combatants
+      self.combatants.each { |c| c.delete }
+    end
+  end
+
+  class FfgCombatant < Ohm::Model
+    include ObjectModel
+
+    # NPCs live entirely on the combatant; PCs carry a character reference and read their
+    # wounds, strain and soak off the sheet instead.
+    attribute :npc_name
+    attribute :tier, :default => 'rival'
+    attribute :weapon
+    attribute :armor
+    attribute :range_band
+
+    attribute :initiative, :type => DataType::Integer, :default => 0
+    attribute :initiative_advantage, :type => DataType::Integer, :default => 0
+
+    attribute :npc_wounds, :type => DataType::Integer, :default => 0
+    attribute :npc_wound_threshold, :type => DataType::Integer, :default => 0
+    attribute :npc_strain, :type => DataType::Integer, :default => 0
+    attribute :npc_strain_threshold, :type => DataType::Integer, :default => 0
+    attribute :npc_soak, :type => DataType::Integer, :default => 0
+    attribute :npc_skill, :type => DataType::Integer, :default => 0
+
+    attribute :minion_count, :type => DataType::Integer, :default => 1
+    attribute :crit_count, :type => DataType::Integer, :default => 0
+
+    reference :character, "AresMUSH::Character"
+    reference :combat, "AresMUSH::FfgCombat"
+
+    def display_name
+      self.character ? self.character.name : self.npc_name
+    end
+
+    def is_pc?
+      !self.character.nil?
+    end
+
+    def wounds
+      self.is_pc? ? (self.character.ffg_wounds || 0) : (self.npc_wounds || 0)
+    end
+
+    def wound_threshold
+      self.is_pc? ? (self.character.ffg_wound_threshold || 0) : (self.npc_wound_threshold || 0)
+    end
+
+    def strain
+      self.is_pc? ? (self.character.ffg_strain || 0) : (self.npc_strain || 0)
+    end
+
+    def strain_threshold
+      self.is_pc? ? (self.character.ffg_strain_threshold || 0) : (self.npc_strain_threshold || 0)
+    end
+
+    def incapacitated?
+      wound_threshold > 0 && wounds >= wound_threshold
     end
   end
 

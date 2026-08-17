@@ -169,9 +169,24 @@ Available effects are `recover_strain`, `suffer_strain`, `heal_wound`, `suffer_w
 
 `target` is `self`, `other` or `none`.
 
+### Combat
+
+Combat is tracked per room: `combat/start`, then `combat/join`, `combat/add` for NPCs, `combat/initiative`, and `attack <target>`.  See `help ffg combat`.
+
+Attacks roll the weapon's skill with difficulty for the target's range band, extra difficulty for shooting past the weapon's range, and setback for the target's armor.  Damage is weapon damage plus any characteristic the weapon uses plus net successes, minus soak.  Criticals cost the weapon's Crit rating in advantage, spent off the recorded roll.
+
+Everything lives in `ffg_combat.yml`:
+
+* `weapons` - name, skill, damage, `crit` rating, `range`, and optionally a `characteristic` whose rating adds to damage (Brawn, for melee and brawl weapons).
+* `armor` - name, `soak` and `defense`.  Defense becomes setback dice against attacks.
+* `critical_injuries` - a `min`/`max` band, a name and an effect.  The injury roll is d100 plus 10 for every critical the target already carries, so give the table room above 100.
+* `adversary_tiers` - `minion`, `rival` and `nemesis`.  `shared_wounds` makes a minion group share one wound pool sized by its count; `uses_strain` makes a tier track strain like a PC.
+* `range_bands` and `range_difficulty` - the bands closest-first, and how many difficulty dice each one costs.
+* `initiative_skills` - tried in order; a combatant rolls the first one they have a rating in.
+
 ### Automation
 
-* `automation` - How much the system does on its own.  `suggest` (the default) means nothing mechanical happens unless somebody asks for it.  `auto` means leftover threat is applied automatically when a roll resolves, using the threat entry marked `auto` in the spends config.
+* `automation` - How much the system does on its own.  `suggest` (the default) means nothing mechanical happens unless somebody asks for it: leftover threat waits to be spent, and an attack reports the damage it would do without touching the sheet.  `auto` means leftover threat is applied when a roll resolves, using the threat entry marked `auto` in the spends config, and attack damage is written to the target.
 
 ### Roll History
 
