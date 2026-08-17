@@ -192,7 +192,7 @@ module AresMUSH
 
       Ffg.prune_roll_history(char)
 
-      FfgRoll.create(
+      roll = FfgRoll.create(
         character: char,
         roll_string: full_roll_str,
         dice: dice,
@@ -208,6 +208,12 @@ module AresMUSH
         created_at: Time.now.to_i,
         scene_id: scene_id
       )
+
+      # In 'auto' games leftover threat resolves itself; in 'suggest' games it waits for
+      # someone to decide what it means.
+      Ffg.auto_resolve_threat(roll)
+
+      roll
     end
 
     def self.roll_message(char_name, roll)

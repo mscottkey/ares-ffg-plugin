@@ -77,6 +77,18 @@ en:
       roll_failed: "%{char} rolls %{roll} and fails. (%{dice}) %{special}"
       roll_spend_hint: "%xh[roll #%{id}]%xn"
 
+      spends_title: "Spends for Roll #%{id}"
+      remaining_title: "Remaining:"
+      spend_symbol_title: "Symbol"
+      spend_cost_title: "Cost"
+      roll_not_found: "That roll couldn't be found.  Rolls are only kept for a while - try 'spends last'."
+      invalid_spend: "That is not a valid spend.  Use 'spends' to see the options."
+      nothing_left_to_spend: "There's nothing left to spend on that roll."
+      not_enough_symbols: "That costs %{cost} %{symbol} and you only have %{have} left."
+      spend_needs_target: "%{name} needs a target.  Use: spend <roll>=%{name}/<character>"
+      spend_applied: "spends %{cost} %{symbol} on %{name}."
+      spend_applied_to: "spends %{cost} %{symbol} on %{name}, targeting %{target}."
+
       char_rating_too_high: "%{name} is above the maximum chargen rating (%{max})."
       cant_lower_below_archetype_min: "You can't lower a characteristic below the starting archetype value."
       skill_rating_too_high: "%{name} is above the maximum chargen rating (%{max})."

@@ -3,6 +3,8 @@ $:.unshift File.dirname(__FILE__)
 # Load web request handlers
 require 'web/ffg_web_hooks'
 require 'web/reset_char_request_handler'
+require 'web/get_roll_spends_request_handler'
+require 'web/apply_roll_spend_request_handler'
 
 module AresMUSH
      module Ffg
@@ -69,6 +71,10 @@ module AresMUSH
         else
           return RollCmd
         end
+      when "spend"
+        return SpendCmd
+      when "spends"
+        return SpendsCmd
       when "xp"
         if (cmd.switch_is?("award"))
           return XpAwardCmd
@@ -93,6 +99,10 @@ module AresMUSH
         return GetChargenInfoRequestHandler
       when "resetAbilities"
         return ResetAbilitiesRequestHandler
+      when "getRollSpends"
+        return GetRollSpendsRequestHandler
+      when "applyRollSpend"
+        return ApplyRollSpendRequestHandler
       end
       nil
     end

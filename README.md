@@ -44,6 +44,7 @@ This plugin has a web portal component covering character creation, the characte
 * **Chargen** - An Abilities tab that walks through archetype, career, specializations, characteristics, skills, talents and force powers, with a running XP tally.  Talent picks are gated on the talent pyramid and force power upgrades on their prerequisites.
 * **Sheet** - A Sheet tab on the character profile showing characteristics, skills, talents by tier, force powers and wound/strain bars.
 * **Rolling** - Ability Roll and Opposed Roll options in the live scene menu and the jobs menu.
+* **Spends** - A Spend Advantage / Threat option in the live scene menu, listing what each of your recent rolls still has left and what it can be spent on.
 
 The portal files live in `webportal/` and the Ares integration hooks in `custom_files/`.  See the installation instructions below for where each one goes.
 
@@ -146,6 +147,35 @@ You can configure the maximum starting ratings required in chargen.
 
 * `max_cg_skill_rating`
 * `max_cg_characteristic_rating`
+
+### Advantage and Threat Spends
+
+Advantage, threat, triumph and despair are a currency, not just flavor text.  Every roll is recorded with the symbols it generated, and players spend them with the `spend` command or from the live scene menu in the web portal.  See `help ffg spends`.
+
+The menu is configured in `ffg_spends.yml`.  Each entry sets what it's called, what it costs, what it does and who it targets:
+
+    ffg:
+        spends:
+            advantage:
+                -
+                    name: Recover Strain
+                    cost: 1
+                    effect: recover_strain
+                    amount: 1
+                    target: self
+                    description: "Recover one strain."
+
+Available effects are `recover_strain`, `suffer_strain`, `heal_wound`, `suffer_wound`, `grant_boost`, `grant_setback` and `narrative`.  Boost and setback dice attach to the target character and are picked up automatically by their next roll.  `narrative` spends have no coded effect - they just get announced so they can be played out.
+
+`target` is `self`, `other` or `none`.
+
+### Automation
+
+* `automation` - How much the system does on its own.  `suggest` (the default) means nothing mechanical happens unless somebody asks for it.  `auto` means leftover threat is applied automatically when a roll resolves, using the threat entry marked `auto` in the spends config.
+
+### Roll History
+
+* `roll_history_hours` - How long a character's rolls are kept so their advantage and threat can still be spent.  Defaults to 24.
 
 ### Miscellaneous
 

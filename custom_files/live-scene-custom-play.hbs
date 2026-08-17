@@ -1,5 +1,7 @@
 <li><a href="#" {{action (mut this.selectAddRoll) true}} class="dropdown-item">Ability Roll</a></li>
 <li><a href="#" {{action (mut this.selectAddOpposed) true}} class="dropdown-item">Opposed Roll</a></li>
+<li><a href="#" {{action (mut this.selectAddSpend) true}} class="dropdown-item">Spend Advantage / Threat</a></li>
 
 <FfgRoll @scene={{this.scene}} @destinationType="scene" @abilities={{this.custom.char_abilities}} @selectAddRoll={{this.selectAddRoll}} />
 <FfgOpposedRoll @scene={{this.scene}} @destinationType="scene" @selectAddOpposed={{this.selectAddOpposed}} />
+<FfgRollSpends @selectAddSpend={{this.selectAddSpend}} @onClose={{action (mut this.selectAddSpend) false}} />
