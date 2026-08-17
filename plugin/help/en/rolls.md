@@ -22,6 +22,21 @@ So to roll an ability with 2 extra boost dice and 3 extra difficulty dice, you c
 
 You can also roll force dice (F) to determine the result of force talents.  For example:  `roll 2F`
 
+## Upgrading and Downgrading
+
+Many talents upgrade a die rather than adding one - turning an ability die into a proficiency die, or a difficulty die into a challenge die.
+
+* `UA` upgrades your ability dice.  `roll Melee+1UA` turns one ability die into a proficiency die.
+* `UD` upgrades the difficulty.  `roll Melee+2D+1UD` turns one of those difficulty dice into a challenge die.
+
+A negative count downgrades instead, turning the stronger die back into the weaker one:  `roll Melee+2P-1UA` rolls with one of those proficiency dice knocked back down to an ability die.
+
+If there's nothing left to upgrade, an upgrade adds a basic die instead, and a downgrade with nothing left to downgrade removes one.
+
+## Spending Advantage and Threat
+
+Every roll is recorded and its number shown in the result, e.g. `[roll #42]`.  See `help ffg spends` for how to spend the advantage, threat, triumph and despair it generated.
+
 ## Opposed Rolls
 
 You can automatically factor in an opponent's skill as difficulty dice when doing an opposed skill roll.

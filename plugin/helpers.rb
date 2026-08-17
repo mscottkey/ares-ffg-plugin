@@ -35,6 +35,16 @@ module AresMUSH
       names.include?(name.downcase)
     end
     
+    # The scene a character is currently in, if the game exposes one on the room.  Rolls
+    # made outside a scene simply record no scene.
+    def self.current_scene_id(char)
+      room = char.room
+      return nil if !room || !room.respond_to?(:scene)
+
+      scene = room.scene
+      scene ? scene.id : nil
+    end
+
     def self.can_manage_abilities?(actor)
       return false if !actor
       actor.has_permission?("manage_apps")

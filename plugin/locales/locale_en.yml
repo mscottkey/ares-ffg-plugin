@@ -75,6 +75,7 @@ en:
       roll_despair: "%xRDespair!%xn"
       roll_successful: "%{char} rolls %{roll} and is successful. (%{dice}) %{special}"
       roll_failed: "%{char} rolls %{roll} and fails. (%{dice}) %{special}"
+      roll_spend_hint: "%xh[roll #%{id}]%xn"
 
       char_rating_too_high: "%{name} is above the maximum chargen rating (%{max})."
       cant_lower_below_archetype_min: "You can't lower a characteristic below the starting archetype value."

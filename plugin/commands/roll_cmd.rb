@@ -15,23 +15,14 @@ module AresMUSH
       
       
       def handle
-        dice = Ffg.roll_ability(enactor, self.roll_str)
-        
-        if (!dice)
+        roll = Ffg.make_roll(enactor, self.roll_str, Ffg.current_scene_id(enactor))
+
+        if (!roll)
           client.emit_failure t('ffg.invalid_ability_name')
           return
         end
-        
-        results = Ffg.determine_outcome(dice)
-        special = Ffg.special_roll_effects(results)
-        
-        if (results.successful)
-          message = t('ffg.roll_successful', :dice => dice.join(' '), :special => special, :roll => self.roll_str, :char => enactor_name )
-        else
-          message = t('ffg.roll_failed', :dice => dice.join(' '), :special => special, :roll => self.roll_str, :char => enactor_name )
-        end
-        
-        Rooms.emit_ooc_to_room enactor_room, message               
+
+        Rooms.emit_ooc_to_room enactor_room, Ffg.roll_message(enactor_name, roll)
       end
     end
   end
