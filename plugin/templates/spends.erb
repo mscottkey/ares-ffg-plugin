@@ -1,0 +1,17 @@
+%lh
+<%= t('ffg.spends_title', :id => roll_id) %>
+%lf
+<%= roll_string %> (<%= dice %>)
+<% if remaining.empty? -%>
+<%= t('ffg.nothing_left_to_spend') %>
+%lf
+<% else -%>
+%xh<%= t('ffg.remaining_title') %>%xn <%= remaining %>
+
+%xh<%= left(t('ffg.name_title'), 22) %>  <%= left(t('ffg.spend_symbol_title'), 12) %>  <%= left(t('ffg.spend_cost_title'), 6) %>  <%= t('ffg.description_title') %>%xn
+<% spends.each do |spend| -%>
+<%= left(spend['name'], 22) %>  <%= left(spend['symbol'].capitalize, 12) %>  <%= left(spend['cost'], 6) %>  <%= spend['description'] %><%= target_note(spend) %>
+<% end -%>
+%lf
+%xhTo spend:%xn spend <%= roll_id %>=<name>  or  spend <%= roll_id %>=<name>/<target>
+<% end -%>

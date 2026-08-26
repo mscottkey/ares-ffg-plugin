@@ -114,26 +114,17 @@ module AresMUSH
     
     def self.check_talents_review(char)
       return "" if char.ffg_talents.empty?
-      
-      # Check pyramid balance
-      counts = { 1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0 }
-      char.ffg_talents.each do |t|
-        tier = t.tier || 1
-        counts[tier] += 1
-      end
-      
-      balanced = (counts[1] >= counts[2] &&
-                  counts[2] >= counts[3] &&
-                  counts[3] >= counts[4] &&
-                  counts[4] >= counts[5])
-      
-      if !balanced
+
+      talents = char.ffg_talents.to_a
+      counts = Ffg.talent_tier_counts(talents)
+
+      if !Ffg.talent_tree_balanced?(talents)
         pyramid = [1, 2, 3, 4, 5].map { |t| "T#{t}:#{counts[t]}" }.join(" ")
         message = "Talent pyramid unbalanced (#{pyramid})"
         return Chargen.format_review_status(message, t('chargen.not_set'))
       end
-      
-      total = counts.values.sum
+
+      total = talents.count
       message = "#{total} talent#{total == 1 ? '' : 's'} (pyramid balanced)"
       Chargen.format_review_status(message, t('chargen.ok'))
     end
@@ -182,13 +173,16 @@ module AresMUSH
         end
       end
       
-      # Skills
+      # Skills (archetype gives its starting skills at rating 1 for free)
+      archetype_skills = (archetype_config && archetype_config['skills']) || []
+
       char.ffg_skills.each do |s|
-        if s.rating > 0
-          spent += Ffg.skill_xp_cost(char, s.name, 0, s.rating)
+        old_rating = archetype_skills.include?(s.name) ? 1 : 0
+        if s.rating > old_rating
+          spent += Ffg.skill_xp_cost(char, s.name, old_rating, s.rating)
         end
       end
-      
+
       # Specializations
       (char.ffg_specializations || []).each_with_index do |spec, index|
         spent += Ffg.specialization_xp_cost(char, spec, index)
@@ -206,7 +200,12 @@ module AresMUSH
           spent += Ffg.talent_xp_cost(t.name, 0, t.rating)
         end
       end
-      
+
+      # Force powers
+      char.ffg_force_powers.each do |p|
+        spent += Ffg.force_power_xp_cost(p.name, p.upgrades || [])
+      end
+
       spent
     end
     

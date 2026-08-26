@@ -1,0 +1,21 @@
+%lh
+<% if started? -%>
+<%= t('ffg.combat_title_round', :round => round) %>
+<% else -%>
+<%= t('ffg.combat_title') %>
+<% end -%>
+%lf
+<% if combatants.empty? -%>
+<%= t('ffg.no_combatants') %>
+<% else -%>
+%xh<%= left(t('ffg.name_title'), 20) %>  <%= left(t('ffg.tier_title'), 10) %>  <%= left(t('ffg.wound_title'), 10) %>  <%= left(t('ffg.strain_title'), 10) %>  <%= left(t('ffg.range_title'), 10) %>  <%= t('ffg.weapon_title') %>%xn
+<% combatants.each do |c| -%>
+<%= turn_marker(c) %><%= left("#{c.display_name}#{group(c)}", 19) %>  <%= left(tier_name(c), 10) %>  <%= left(wounds(c), 10) %>  <%= left(strain(c), 10) %>  <%= left(c.range_band, 10) %>  <%= c.weapon %> <%= status(c) %>
+<% end -%>
+%lf
+<% if started? -%>
+%xhTurn:%xn <%= active_name %>
+<% else -%>
+<%= t('ffg.initiative_not_rolled') %>
+<% end -%>
+<% end -%>

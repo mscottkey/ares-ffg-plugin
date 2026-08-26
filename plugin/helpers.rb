@@ -35,6 +35,16 @@ module AresMUSH
       names.include?(name.downcase)
     end
     
+    # The scene a character is currently in, if the game exposes one on the room.  Rolls
+    # made outside a scene simply record no scene.
+    def self.current_scene_id(char)
+      room = char.room
+      return nil if !room || !room.respond_to?(:scene)
+
+      scene = room.scene
+      scene ? scene.id : nil
+    end
+
     def self.can_manage_abilities?(actor)
       return false if !actor
       actor.has_permission?("manage_apps")
@@ -666,11 +676,11 @@ module AresMUSH
               next
             end
 
-            upgrades = row[:upgrades] || row['upgrades'] || []
+            upgrades = Ffg.validate_force_power_upgrades(config, row[:upgrades] || row['upgrades'] || [], errors)
 
             FfgForcePower.create(
               character: char,
-              name: name,
+              name: config['name'],
               upgrades: upgrades
             )
           end
@@ -679,6 +689,16 @@ module AresMUSH
           Global.logger.error e.backtrace.join("\n")
           errors << "There was a problem saving your force powers. Please try again or contact staff."
         end
+      else
+        # Dropping the force-using specialization gives up the powers that came with it,
+        # otherwise they'd stay on the sheet and keep costing XP.
+        char.ffg_force_powers.to_a.each { |p| p.delete }
+      end
+
+      # The web UI gates talent picks on the pyramid, but it's the client's copy of the
+      # rules - re-check the tree we actually ended up with.
+      if !Ffg.talent_tree_balanced?(char.ffg_talents.to_a)
+        errors << t('ffg.talent_add_unbalanced')
       end
 
       # Update thresholds based on final characteristics
@@ -686,8 +706,61 @@ module AresMUSH
         Ffg.update_thresholds(char)
       end
 
+      # Reconcile XP.  The web UI tallies spending client-side for display; the sheet's
+      # balance is always derived here from what actually got saved.
+      starting_xp = Ffg.calculate_starting_xp(char)
+      spent_xp = Ffg.calculate_spent_xp(char)
+      char.update(ffg_xp: starting_xp - spent_xp)
+
+      if spent_xp > starting_xp
+        errors << t('ffg.not_enough_xp')
+      end
+
       Global.logger.info "FFG: save_abilities completed for #{char.name} with #{errors.length} errors"
       errors
+    end
+
+    # Filters a submitted upgrade list down to the ones that are actually legal, appending
+    # a message to `errors` for each one dropped.  Mirrors the checks in ForcePowerUpgradeCmd.
+    def self.validate_force_power_upgrades(power_config, submitted, errors)
+      upgrades_config = power_config['upgrades'] || []
+      counts = {}
+      known = []
+
+      (submitted || []).each do |upgrade_name|
+        upgrade_config = upgrades_config.select { |u| u['name'].downcase == upgrade_name.to_s.downcase }.first
+
+        if !upgrade_config
+          errors << t('ffg.invalid_upgrade')
+          next
+        end
+
+        name = upgrade_config['name']
+        max_rank = upgrade_config['max_rank'] || 1
+        counts[name] = counts[name] || 0
+
+        if counts[name] >= max_rank
+          errors << t('ffg.upgrade_max_rank', :name => name, :max => max_rank)
+          next
+        end
+
+        counts[name] += 1
+        known << name
+      end
+
+      # Prereqs are checked against the whole submitted set so the order the UI happens to
+      # send them in doesn't matter.
+      known.select do |name|
+        upgrade_config = upgrades_config.select { |u| u['name'] == name }.first
+        prereq = upgrade_config['prereq']
+
+        if prereq && !known.include?(prereq)
+          errors << t('ffg.upgrade_needs_prereq', :upgrade => name, :prereq => prereq)
+          false
+        else
+          true
+        end
+      end
     end
 
     # Extract the reset logic so both the command and web save can use it

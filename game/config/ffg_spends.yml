@@ -1,0 +1,115 @@
+---
+ffg:
+    # How much the system does on its own.
+    #   suggest - results are worked out and offered, a person decides what happens.
+    #   auto    - threat entries marked 'auto' are applied as soon as a roll resolves.
+    automation: suggest
+
+    # What advantage, threat, triumph and despair can be spent on.  Each entry has:
+    #   name        - what players type after the roll number
+    #   cost        - how many symbols it takes
+    #   effect      - one of: recover_strain, suffer_strain, heal_wound, suffer_wound,
+    #                 grant_boost, grant_setback, narrative
+    #   amount      - how much the effect applies (default 1)
+    #   target      - self, other, or none (default self)
+    #   auto        - only meaningful for threat; the entry used when automation is 'auto'
+    #   description - shown in the spend menu
+    spends:
+        advantage:
+            -
+                name: Recover Strain
+                cost: 1
+                effect: recover_strain
+                amount: 1
+                target: self
+                description: "Recover one strain."
+            -
+                name: Boost Ally
+                cost: 1
+                effect: grant_boost
+                amount: 1
+                target: other
+                description: "Add a boost die to the next check by an ally."
+            -
+                name: Setback Enemy
+                cost: 1
+                effect: grant_setback
+                amount: 1
+                target: other
+                description: "Add a setback die to the next check by an enemy."
+            -
+                name: Notice
+                cost: 1
+                effect: narrative
+                target: none
+                description: "Notice a single important detail in the scene."
+            -
+                name: Add A Fact
+                cost: 2
+                effect: narrative
+                target: none
+                description: "Add a helpful fact to the scene."
+            -
+                name: Tend A Wound
+                cost: 2
+                effect: heal_wound
+                amount: 1
+                target: other
+                description: "Someone recovers one wound."
+        threat:
+            -
+                name: Suffer Strain
+                cost: 1
+                effect: suffer_strain
+                amount: 1
+                target: self
+                auto: true
+                description: "Suffer one strain."
+            -
+                name: Setback
+                cost: 1
+                effect: grant_setback
+                amount: 1
+                target: self
+                description: "Add a setback die to your next check."
+            -
+                name: Boost Enemy
+                cost: 1
+                effect: grant_boost
+                amount: 1
+                target: other
+                description: "Add a boost die to the next check by an enemy."
+            -
+                name: Complication
+                cost: 2
+                effect: narrative
+                target: none
+                description: "A complication arises in the scene."
+        triumph:
+            -
+                name: Triumph Detail
+                cost: 1
+                effect: narrative
+                target: none
+                description: "Something goes exceptionally well beyond the check itself."
+            -
+                name: Upgrade Ally
+                cost: 1
+                effect: grant_boost
+                amount: 2
+                target: other
+                description: "An ally gets two boost dice on their next check."
+        despair:
+            -
+                name: Despair Setback
+                cost: 1
+                effect: grant_setback
+                amount: 2
+                target: self
+                description: "Two setback dice on your next check."
+            -
+                name: Despair Detail
+                cost: 1
+                effect: narrative
+                target: none
+                description: "Something goes badly wrong beyond the check itself."

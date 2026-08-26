@@ -39,7 +39,14 @@ This plugin is a simplified implementation of the [Fantasy Flight Games RPG](htt
 
 ## Web Portal
 
-This plugin has no web portal component.  Nor is it ever likely to, given its complexity.
+This plugin has a web portal component covering character creation, the character sheet, and rolling.
+
+* **Chargen** - An Abilities tab that walks through archetype, career, specializations, characteristics, skills, talents and force powers, with a running XP tally.  Talent picks are gated on the talent pyramid and force power upgrades on their prerequisites.
+* **Sheet** - A Sheet tab on the character profile showing characteristics, skills, talents by tier, force powers and wound/strain bars.
+* **Rolling** - Ability Roll and Opposed Roll options in the live scene menu and the jobs menu.
+* **Spends** - A Spend Advantage / Threat option in the live scene menu, listing what each of your recent rolls still has left and what it can be spent on.
+
+The portal files live in `webportal/` and the Ares integration hooks in `custom_files/`.  See the installation instructions below for where each one goes.
 
 ## Installation
 
@@ -140,6 +147,50 @@ You can configure the maximum starting ratings required in chargen.
 
 * `max_cg_skill_rating`
 * `max_cg_characteristic_rating`
+
+### Advantage and Threat Spends
+
+Advantage, threat, triumph and despair are a currency, not just flavor text.  Every roll is recorded with the symbols it generated, and players spend them with the `spend` command or from the live scene menu in the web portal.  See `help ffg spends`.
+
+The menu is configured in `ffg_spends.yml`.  Each entry sets what it's called, what it costs, what it does and who it targets:
+
+    ffg:
+        spends:
+            advantage:
+                -
+                    name: Recover Strain
+                    cost: 1
+                    effect: recover_strain
+                    amount: 1
+                    target: self
+                    description: "Recover one strain."
+
+Available effects are `recover_strain`, `suffer_strain`, `heal_wound`, `suffer_wound`, `grant_boost`, `grant_setback` and `narrative`.  Boost and setback dice attach to the target character and are picked up automatically by their next roll.  `narrative` spends have no coded effect - they just get announced so they can be played out.
+
+`target` is `self`, `other` or `none`.
+
+### Combat
+
+Combat is tracked per room: `combat/start`, then `combat/join`, `combat/add` for NPCs, `combat/initiative`, and `attack <target>`.  See `help ffg combat`.
+
+Attacks roll the weapon's skill with difficulty for the target's range band, extra difficulty for shooting past the weapon's range, and setback for the target's armor.  Damage is weapon damage plus any characteristic the weapon uses plus net successes, minus soak.  Criticals cost the weapon's Crit rating in advantage, spent off the recorded roll.
+
+Everything lives in `ffg_combat.yml`:
+
+* `weapons` - name, skill, damage, `crit` rating, `range`, and optionally a `characteristic` whose rating adds to damage (Brawn, for melee and brawl weapons).
+* `armor` - name, `soak` and `defense`.  Defense becomes setback dice against attacks.
+* `critical_injuries` - a `min`/`max` band, a name and an effect.  The injury roll is d100 plus 10 for every critical the target already carries, so give the table room above 100.
+* `adversary_tiers` - `minion`, `rival` and `nemesis`.  `shared_wounds` makes a minion group share one wound pool sized by its count; `uses_strain` makes a tier track strain like a PC.
+* `range_bands` and `range_difficulty` - the bands closest-first, and how many difficulty dice each one costs.
+* `initiative_skills` - tried in order; a combatant rolls the first one they have a rating in.
+
+### Automation
+
+* `automation` - How much the system does on its own.  `suggest` (the default) means nothing mechanical happens unless somebody asks for it: leftover threat waits to be spent, and an attack reports the damage it would do without touching the sheet.  `auto` means leftover threat is applied when a roll resolves, using the threat entry marked `auto` in the spends config, and attack damage is written to the target.
+
+### Roll History
+
+* `roll_history_hours` - How long a character's rolls are kept so their advantage and threat can still be spent.  Defaults to 24.
 
 ### Miscellaneous
 

@@ -7,6 +7,7 @@ ffg:
     min_career_skills: 4
     wound_characteristic: Brawn
     strain_characteristic: Willpower
+    roll_history_hours: 24
     
     shortcuts:
         talents: talent

@@ -35,6 +35,67 @@ module AresMUSH
           expect(params.ability).to eq -1
           expect(params.proficiency).to eq 1
         end
+
+        it "should accumulate repeats of the same die code" do
+          params = Ffg.parse_roll_string("Melee+1A+2A")
+          expect(params.skill).to eq "Melee"
+          expect(params.ability).to eq 3
+        end
+
+        it "should handle an ability upgrade" do
+          params = Ffg.parse_roll_string("Melee+2UA")
+          expect(params.skill).to eq "Melee"
+          expect(params.upgrade_ability).to eq 2
+          expect(params.ability).to eq 0
+        end
+
+        it "should handle a difficulty upgrade" do
+          params = Ffg.parse_roll_string("Melee+2D+1UD")
+          expect(params.skill).to eq "Melee"
+          expect(params.difficulty).to eq 2
+          expect(params.upgrade_difficulty).to eq 1
+        end
+
+        it "should handle a downgrade" do
+          params = Ffg.parse_roll_string("Melee-1UA")
+          expect(params.upgrade_ability).to eq(-1)
+        end
+      end
+
+      describe :apply_upgrades do
+        it "should do nothing with a count of zero" do
+          expect(Ffg.apply_upgrades(0, 3, 1)).to eq [ 3, 1 ]
+        end
+
+        it "should convert a basic die into an upgraded one" do
+          expect(Ffg.apply_upgrades(1, 3, 0)).to eq [ 2, 1 ]
+        end
+
+        it "should convert several dice" do
+          expect(Ffg.apply_upgrades(2, 3, 1)).to eq [ 1, 3 ]
+        end
+
+        # With nothing to upgrade, the first upgrade adds a basic die and the second
+        # promotes the die it just added.
+        it "should add a basic die when there is nothing left to upgrade" do
+          expect(Ffg.apply_upgrades(2, 0, 1)).to eq [ 0, 2 ]
+        end
+
+        it "should upgrade what it can, then add and upgrade again" do
+          expect(Ffg.apply_upgrades(3, 1, 0)).to eq [ 0, 2 ]
+        end
+
+        it "should downgrade an upgraded die back to basic" do
+          expect(Ffg.apply_upgrades(-1, 1, 2)).to eq [ 2, 1 ]
+        end
+
+        it "should remove a basic die when there is nothing to downgrade" do
+          expect(Ffg.apply_upgrades(-1, 2, 0)).to eq [ 1, 0 ]
+        end
+
+        it "should not go below zero dice" do
+          expect(Ffg.apply_upgrades(-3, 1, 0)).to eq [ 0, 0 ]
+        end
       end
       
       describe :roll_ability do

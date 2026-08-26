@@ -96,6 +96,25 @@ export default Component.extend({
     return cost;
   },
 
+  // Calculate force power XP cost (base cost plus each purchased upgrade)
+  _calculateForcePowerCost(powerName, upgrades) {
+    let cgInfo = this.get('cgInfo');
+    let powerConfig = (cgInfo.force_powers || []).find(p => p.name === powerName);
+    if (!powerConfig) {
+      return 0;
+    }
+
+    let cost = powerConfig.base_xp_cost || 10;
+    let upgradesConfig = powerConfig.upgrades || [];
+
+    (upgrades || []).forEach(upgradeName => {
+      let upgradeConfig = upgradesConfig.find(u => u.name === upgradeName);
+      cost += upgradeConfig ? (upgradeConfig.xp_cost || 5) : 0;
+    });
+
+    return cost;
+  },
+
   // Check if specialization is career specialization
   _isCareerSpecialization(specName) {
     let careerName = this.get('ffgData.career.name');
@@ -115,6 +134,7 @@ export default Component.extend({
     'ffgData.skills.@each.rating',
     'ffgData.specializations.@each.name',
     'ffgData.talents.@each.{name,rank}',
+    'ffgData.force_powers.@each.{name,upgrades}',
     'ffgData.archetype.characteristics',
     'ffgData.archetype.skills',
     'ffgData.archetype.talents',
@@ -176,6 +196,12 @@ export default Component.extend({
           // Charge for all ranks
           totalSpent += this._calculateTalentCost(t.name, 0, rank);
         }
+      });
+
+      // Calculate force power costs
+      let forcePowers = ffgData.force_powers || [];
+      forcePowers.forEach(p => {
+        totalSpent += this._calculateForcePowerCost(p.name, p.upgrades);
       });
 
       return totalSpent;

@@ -1,0 +1,66 @@
+<BsModalSimple
+  @title="Spend Advantage / Threat"
+  @show={{@selectAddSpend}}
+  @onSubmit={{this.applySpend}}
+  @onHide={{this.cancelSpend}}>
+
+  {{#if this.loading}}
+    <p>Loading your recent rolls...</p>
+  {{else if this.hasRolls}}
+
+    <div class="form-group">
+      <label for="spendRoll">Roll</label>
+      <select class="form-control" id="spendRoll" onchange={{this.selectRoll}}>
+        {{#each this.rolls as |roll|}}
+          <option value={{roll.id}} selected={{eq roll.id this.selectedRollId}}>
+            #{{roll.id}} - {{roll.roll_string}} ({{roll.dice}})
+          </option>
+        {{/each}}
+      </select>
+      {{#if this.selectedRoll}}
+        <p class="help-block">
+          Remaining:
+          {{#if this.selectedRoll.advantage}}<span class="text-success">Advantage ({{this.selectedRoll.advantage}})</span>{{/if}}
+          {{#if this.selectedRoll.threat}}<span class="text-danger">Threat ({{this.selectedRoll.threat}})</span>{{/if}}
+          {{#if this.selectedRoll.triumph}}<span class="text-success">Triumph ({{this.selectedRoll.triumph}})</span>{{/if}}
+          {{#if this.selectedRoll.despair}}<span class="text-danger">Despair ({{this.selectedRoll.despair}})</span>{{/if}}
+        </p>
+      {{/if}}
+    </div>
+
+    <div class="form-group">
+      <label for="spendOption">Spend On</label>
+      <select class="form-control" id="spendOption" onchange={{this.selectSpend}}>
+        <option value="">-- Select a Spend --</option>
+        {{#each this.availableSpends as |spend|}}
+          <option value={{spend.name}}>
+            {{spend.name}} ({{spend.cost}} {{spend.symbol}}) - {{spend.description}}
+          </option>
+        {{/each}}
+      </select>
+    </div>
+
+    {{#if this.needsTarget}}
+      <div class="form-group">
+        <label for="spendTarget">Target</label>
+        <input
+          type="text"
+          id="spendTarget"
+          class="form-control"
+          value={{this.targetName}}
+          oninput={{this.updateTarget}}
+          placeholder="Character name" />
+        <p class="help-block">This spend affects someone else - name them here.</p>
+      </div>
+    {{/if}}
+
+  {{else}}
+    <p>None of your recent rolls have advantage, threat, triumph or despair left to spend.</p>
+  {{/if}}
+
+  <div class="modal-footer">
+    <button class="btn btn-secondary" {{on "click" this.loadSpends}}>Reload Rolls</button>
+    <button class="btn btn-secondary" {{on "click" this.cancelSpend}}>Cancel</button>
+    <button class="btn btn-primary" {{on "click" this.applySpend}} disabled={{not this.hasRolls}}>Spend</button>
+  </div>
+</BsModalSimple>

@@ -3,6 +3,10 @@ $:.unshift File.dirname(__FILE__)
 # Load web request handlers
 require 'web/ffg_web_hooks'
 require 'web/reset_char_request_handler'
+require 'web/get_roll_spends_request_handler'
+require 'web/apply_roll_spend_request_handler'
+require 'web/get_combat_request_handler'
+require 'web/resolve_attack_request_handler'
 
 module AresMUSH
      module Ffg
@@ -69,6 +73,30 @@ module AresMUSH
         else
           return RollCmd
         end
+      when "spend"
+        return SpendCmd
+      when "spends"
+        return SpendsCmd
+      when "combat"
+        if (cmd.switch_is?("start"))
+          return CombatStartCmd
+        elsif (cmd.switch_is?("join"))
+          return CombatJoinCmd
+        elsif (cmd.switch_is?("add"))
+          return CombatAddCmd
+        elsif (cmd.switch_is?("initiative"))
+          return CombatInitiativeCmd
+        elsif (cmd.switch_is?("next"))
+          return CombatNextCmd
+        elsif (cmd.switch_is?("end"))
+          return CombatEndCmd
+        else
+          return CombatCmd
+        end
+      when "attack"
+        return AttackCmd
+      when "crit"
+        return CritCmd
       when "xp"
         if (cmd.switch_is?("award"))
           return XpAwardCmd
@@ -93,6 +121,14 @@ module AresMUSH
         return GetChargenInfoRequestHandler
       when "resetAbilities"
         return ResetAbilitiesRequestHandler
+      when "getRollSpends"
+        return GetRollSpendsRequestHandler
+      when "applyRollSpend"
+        return ApplyRollSpendRequestHandler
+      when "getCombat"
+        return GetCombatRequestHandler
+      when "resolveAttack"
+        return ResolveAttackRequestHandler
       end
       nil
     end
